@@ -74,29 +74,67 @@ class OrgEdit extends Component {
     );
 
     let contacts = "";
-
+    let contactList = "";
     if (item.orgContacts.length > 0) {
-      const contactList = item.orgContacts.map((contact) => {
+      contactList = item.orgContacts.map((contact) => {
         return (
-          <tr key={contact.contactId}>
-            <td style={{ whiteSpace: "nowrap" }}>{contact.firstName}</td>
-            <td>{contact.lastName}</td>
-            <td>{contact.title}</td>
-            <td>{contact.email}</td>
-            <td>{contact.phone}</td>
-            <td>
-              <ButtonGroup>
-                <Button
-                  size="sm"
-                  color="primary"
-                  tag={Link}
-                  to={"/contacts/" + contact.contactId}
-                >
-                  Edit
-                </Button>
-              </ButtonGroup>
-            </td>
-          </tr>
+          <div className="row">
+            <FormGroup className="col-md-3 mb-3">
+              <Label for="contact.firstName">First Name</Label>
+              <Input
+                type="text"
+                name="contact.firstName"
+                id="contact.firstName"
+                value={contact.firstName || ""}
+                onChange={this.handleChange}
+                autoComplete="address-level1"
+              />
+            </FormGroup>
+            <FormGroup className="col-md-3 mb-3">
+              <Label for="contact.lastName">Last Name</Label>
+              <Input
+                type="text"
+                name="contact.lastName"
+                id="contact.lastName"
+                value={contact.lastName || ""}
+                onChange={this.handleChange}
+                autoComplete="address-level1"
+              />
+            </FormGroup>
+            <FormGroup className="col-md-3 mb-3">
+              <Label for="contact.title">Title</Label>
+              <Input
+                type="text"
+                name="contact.title"
+                id="contact.title"
+                value={contact.title || ""}
+                onChange={this.handleChange}
+                autoComplete="address-level1"
+              />
+            </FormGroup>
+            <FormGroup className="col-md-3 mb-3">
+              <Label for="contact.email">Email</Label>
+              <Input
+                type="text"
+                name="contact.email"
+                id="contact.email"
+                value={contact.email || ""}
+                onChange={this.handleChange}
+                autoComplete="address-level1"
+              />
+            </FormGroup>
+            <FormGroup className="col-md-3 mb-3">
+              <Label for="contact.phone">Phone</Label>
+              <Input
+                type="text"
+                name="contact.phone"
+                id="contact.phone"
+                value={contact.phone || ""}
+                onChange={this.handleChange}
+                autoComplete="address-level1"
+              />
+            </FormGroup>
+          </div>
         );
       });
       contacts = (
@@ -213,8 +251,80 @@ class OrgEdit extends Component {
                 />
               </FormGroup>
             </div>
-            <div className="row"></div>
-            <div>{contacts}</div>
+            {/*<React.Fragment>{contactList}</React.Fragment>--%>*/}
+            <div>
+              {item.orgContacts.map((contact) => {
+                return (
+                  <div className="row">
+                    <FormGroup className="col-md-3 mb-3">
+                      <Label for={"contact.firstName" + contact.contactId}>
+                        First Name
+                      </Label>
+                      <Input
+                        type="text"
+                        name={"contact.firstName" + contact.contactId}
+                        id={"contact.firstName" + contact.contactId}
+                        value={contact.firstName || ""}
+                        onChange={this.handleChange}
+                        autoComplete="address-level1"
+                      />
+                    </FormGroup>
+                    <FormGroup className="col-md-3 mb-3">
+                      <Label for={"contact.lastName" + contact.contactId}>
+                        Last Name
+                      </Label>
+                      <Input
+                        type="text"
+                        name={"contact.lastName" + contact.contactId}
+                        id={"contact.lastName" + contact.contactId}
+                        value={contact.lastName || ""}
+                        onChange={this.handleChange}
+                        autoComplete="address-level1"
+                      />
+                    </FormGroup>
+                    <FormGroup className="col-md-3 mb-3">
+                      <Label for={"contact.title" + contact.contactId}>
+                        Title
+                      </Label>
+                      <Input
+                        type="text"
+                        name={"contact.title" + contact.contactId}
+                        id={"contact.title" + contact.contactId}
+                        value={contact.title || ""}
+                        onChange={this.handleChange}
+                        autoComplete="address-level1"
+                      />
+                    </FormGroup>
+                    <FormGroup className="col-md-3 mb-3">
+                      <Label for={"contact.email" + contact.contactId}>
+                        Email
+                      </Label>
+                      <Input
+                        type="text"
+                        name={"contact.email" + contact.contactId}
+                        id={"contact.email" + contact.contactId}
+                        value={contact.email || ""}
+                        onChange={this.handleChange}
+                        autoComplete="address-level1"
+                      />
+                    </FormGroup>
+                    <FormGroup className="col-md-3 mb-3">
+                      <Label for={"contact.phone" + contact.contactId}>
+                        Phone
+                      </Label>
+                      <Input
+                        type="text"
+                        name={"contact.phone" + contact.contactId}
+                        id={"contact.phone" + contact.contactId}
+                        value={contact.phone || ""}
+                        onChange={this.handleChange}
+                        autoComplete="address-level1"
+                      />
+                    </FormGroup>
+                  </div>
+                );
+              })}
+            </div>
             <FormGroup>
               <Button color="primary" type="submit">
                 Save
