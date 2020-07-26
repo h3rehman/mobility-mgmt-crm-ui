@@ -7,6 +7,7 @@ import EventList from "./EventList";
 import MyEvents from "./MyEvents";
 import OrgEdit from "./OrgEdit";
 import OrgRead from "./OrgRead";
+import ContactEdit from "./ContactEdit";
 
 class App extends Component {
   render() {
@@ -19,6 +20,7 @@ class App extends Component {
           <Route path="/appointments/1" exact={true} component={MyEvents} />
           <Route path="/organizations/:id" component={OrgEdit} />
           <Route path="/organizations/read/:id" component={OrgRead} />
+          <Route path="/contact/:id" component={ContactEdit} />
         </Switch>
       </Router>
     );

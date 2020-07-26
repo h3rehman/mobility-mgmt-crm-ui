@@ -90,9 +90,12 @@ class OrgEdit extends Component {
                   size="sm"
                   color="primary"
                   tag={Link}
-                  to={"/contacts/" + contact.contactId}
+                  to={"/contact/" + contact.contactId}
                 >
                   Edit
+                </Button>
+                <Button size="sm" color="danger" href="#">
+                  Remove
                 </Button>
               </ButtonGroup>
             </td>
