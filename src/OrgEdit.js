@@ -74,9 +74,9 @@ class OrgEdit extends Component {
     );
 
     let contacts = "";
-
+    let contactList = "";
     if (item.orgContacts.length > 0) {
-      const contactList = item.orgContacts.map((contact) => {
+      contactList = item.orgContacts.map((contact) => {
         return (
           <tr key={contact.contactId}>
             <td style={{ whiteSpace: "nowrap" }}>{contact.firstName}</td>
@@ -90,9 +90,12 @@ class OrgEdit extends Component {
                   size="sm"
                   color="primary"
                   tag={Link}
-                  to={"/contacts/" + contact.contactId}
+                  to={"/contact/" + contact.contactId}
                 >
                   Edit
+                </Button>
+                <Button size="sm" color="danger" href="#">
+                  Remove
                 </Button>
               </ButtonGroup>
             </td>
@@ -213,8 +216,7 @@ class OrgEdit extends Component {
                 />
               </FormGroup>
             </div>
-            <div className="row"></div>
-            <div>{contacts}</div>
+            <React.Fragment>{contacts}</React.Fragment>
             <FormGroup>
               <Button color="primary" type="submit">
                 Save
