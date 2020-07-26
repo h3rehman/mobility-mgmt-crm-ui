@@ -32,6 +32,7 @@ class OrgEdit extends Component {
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.remove = this.remove.bind(this);
   }
 
   async componentDidMount() {
@@ -67,6 +68,23 @@ class OrgEdit extends Component {
     this.props.history.push("/organizations");
   }
 
+  async remove(orgId, contactId) {
+    await fetch(`/api/orgContact/${orgId}/${contactId}`, {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }).then(() => {
+      let updatedContacts = [...this.state.item.orgContacts].filter(
+        (i) => i.contactId !== contactId
+      );
+      this.setState({
+        item: { ...this.state.item, orgContacts: updatedContacts },
+      });
+    });
+  }
+
   render() {
     const { item } = this.state;
     const title = (
@@ -94,7 +112,11 @@ class OrgEdit extends Component {
                 >
                   Edit
                 </Button>
-                <Button size="sm" color="danger" href="#">
+                <Button
+                  size="sm"
+                  color="danger"
+                  onClick={() => this.remove(item.orgId, contact.contactId)}
+                >
                   Remove
                 </Button>
               </ButtonGroup>
