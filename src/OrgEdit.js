@@ -41,7 +41,7 @@ class OrgEdit extends Component {
       item: this.emptyItem,
       conObj: this.emptyContact,
       contactFormCheck: false,
-      addContactButton: "block",
+      addContactButton: "none",
       orgUpdateAlert: false,
       newOrgAlert: false,
     };
@@ -59,6 +59,7 @@ class OrgEdit extends Component {
         await fetch(`/api/organizations/${this.props.match.params.id}`)
       ).json();
       this.setState({ item: org });
+      this.setState({ addContactButton: "block" });
     }
   }
 
@@ -169,6 +170,7 @@ class OrgEdit extends Component {
     const title = (
       <h3>{item.orgId ? "Edit Organization" : "Add Organization"}</h3>
     );
+
     let contactForm = "";
     if (contactFormCheck) {
       contactForm = (
@@ -249,7 +251,7 @@ class OrgEdit extends Component {
           </FormGroup>
         </Form>
       );
-    } else {
+    } else if (this.props.match.params.id !== "new") {
       contactForm = (
         <p>
           Click <i>Add Contact </i> to add a contact for this Organization.
@@ -313,6 +315,15 @@ class OrgEdit extends Component {
         <p>
           <h6>
             <i>No Contacts associated with this Organization.</i>
+          </h6>
+          <br></br>
+        </p>
+      );
+    } else {
+      contacts = (
+        <p>
+          <h6>
+            <i>Add contacts after creating an Organization.</i>
           </h6>
           <br></br>
         </p>
@@ -436,13 +447,15 @@ class OrgEdit extends Component {
             </FormGroup>
           </Form>
           <p>
-            <button
+            <Button
               style={{ display: addContactButton }}
-              color="secondary"
+              outline
+              color="info"
               onClick={() => this.addContactRow()}
+              size="sm"
             >
               Add Contact
-            </button>
+            </Button>
           </p>
         </Container>
       </div>
