@@ -68,3 +68,8 @@
 .navbar-nav {
   margin-right: 30px;
 }
+
+/*Form Fields*/
+.required {
+  color: red;
+}
