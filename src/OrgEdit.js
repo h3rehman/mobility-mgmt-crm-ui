@@ -51,6 +51,7 @@ class OrgEdit extends Component {
     this.remove = this.remove.bind(this);
     this.addContactRow = this.addContactRow.bind(this);
     this.handleConChange = this.handleConChange.bind(this);
+    this.handleConSubmit = this.handleConSubmit.bind(this);
   }
 
   async componentDidMount() {
@@ -63,15 +64,13 @@ class OrgEdit extends Component {
     }
   }
 
+  //manages state for contact form
   handleConChange(event) {
     const target = event.target;
     const value = target.value;
     const name = target.name;
     let newConObj = { ...this.state.conObj };
     newConObj[name] = value;
-    console.log(
-      "handleConChange method called with name and value: " + name + " " + value
-    );
     this.setState({ conObj: newConObj });
   }
 
@@ -82,6 +81,23 @@ class OrgEdit extends Component {
     let item = { ...this.state.item };
     item[name] = value;
     this.setState({ item });
+  }
+
+  async handleConSubmit(event) {
+    event.preventDefault();
+    const { conObj } = this.state;
+    const { item } = this.state;
+    console.log("handleConSubmit Called!");
+
+    await fetch(`/api/orgContact/${item.orgId}`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(conObj),
+    });
+    window.location.href = "/organizations/" + item.orgId;
   }
 
   async handleSubmit(event) {
@@ -174,7 +190,7 @@ class OrgEdit extends Component {
     let contactForm = "";
     if (contactFormCheck) {
       contactForm = (
-        <Form>
+        <Form onSubmit={this.handleConSubmit}>
           <div className="row">
             <FormGroup className="col-md-2 mb-2">
               <Label for="firstName">
@@ -242,9 +258,9 @@ class OrgEdit extends Component {
             </FormGroup>
           </div>
           <FormGroup>
-            <Button size="sm" color="primary" tag={Link} to={"/contact/"}>
+            <Button size="sm" color="primary" type="submit">
               Save Contact
-            </Button>
+            </Button>{" "}
             <Button size="sm" color="warning" onClick={() => this.cancelForm()}>
               Cancel
             </Button>
@@ -436,16 +452,18 @@ class OrgEdit extends Component {
               </FormGroup>
             </div>
             <React.Fragment>{contacts}</React.Fragment>
-            <div>{contactForm}</div>
             <FormGroup>
               <Button color="primary" type="submit">
                 Save
               </Button>{" "}
               <Button color="secondary" tag={Link} to="/organizations">
-                Cancel
+                Go back to Organizations
               </Button>
             </FormGroup>
           </Form>
+          <p>
+            <div>{contactForm}</div>
+          </p>
           <p>
             <Button
               style={{ display: addContactButton }}
@@ -457,6 +475,7 @@ class OrgEdit extends Component {
               Add Contact
             </Button>
           </p>
+          <p>&nbsp;</p>
         </Container>
       </div>
     );
