@@ -299,7 +299,14 @@ class OrgEdit extends Component {
                 <Button
                   size="sm"
                   color="danger"
-                  onClick={() => this.remove(item.orgId, contact.contactId)}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Are you sure you want to remove this contact? Upon removing, the contact will be disassociated from the Organization but continue to exist in the Database."
+                      )
+                    )
+                      this.remove(item.orgId, contact.contactId);
+                  }}
                 >
                   Remove
                 </Button>
@@ -431,13 +438,27 @@ class OrgEdit extends Component {
                 </Label>
                 <Input
                   required
-                  type="text"
+                  type="select"
                   name="countyName"
                   id="countyName"
                   value={item.countyName || ""}
                   onChange={this.handleChange}
                   autoComplete="address-level1"
-                />
+                >
+                  <option></option>
+                  <option>Chicago - North</option>
+                  <option>Chicago - South</option>
+                  <option>McHenry</option>
+                  <option>Lake</option>
+                  <option>Kane</option>
+                  <option>Will</option>
+                  <option>DuPage</option>
+                  <option>Northwest Cook</option>
+                  <option>North Central Cook</option>
+                  <option>Central Cook</option>
+                  <option>Southwest Cook</option>
+                  <option>South Cook</option>
+                </Input>
               </FormGroup>
               <FormGroup className="col-md-3 mb-3">
                 <Label for="zip">Zip</Label>
