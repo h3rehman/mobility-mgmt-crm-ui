@@ -24,6 +24,8 @@ class OrgEdit extends Component {
     email: "",
     zip: "",
     orgContacts: [],
+    upcomingEvents: [],
+    pastEvents: [],
   };
 
   emptyContact = {
@@ -352,6 +354,129 @@ class OrgEdit extends Component {
         </p>
       );
     }
+    //Upcoming Events Table
+    let upEvents = "";
+    let upEventsList = "";
+    if (item.upcomingEvents.length > 0) {
+      upEventsList = item.upcomingEvents.map((event) => {
+        return (
+          <tr key={event.eventId}>
+            <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
+            <td>{event.startDateTime}</td>
+            <td>{event.endDateTime}</td>
+            <td>{event.eventType}</td>
+            <td>
+              {event.eventPresenters.map((presenter) => {
+                return presenter;
+              })}
+            </td>
+            <td>
+              <ButtonGroup>
+                <Button
+                  size="sm"
+                  color="primary"
+                  tag={Link}
+                  to={"/event/" + event.eventId}
+                >
+                  Edit
+                </Button>
+              </ButtonGroup>
+            </td>
+          </tr>
+        );
+      });
+      upEvents = (
+        <div>
+          <h5>Upcoming Events with {item.orgname}</h5>
+          <Table className="mt-1">
+            <thead>
+              <tr>
+                <th width="5%">Location</th>
+                <th width="5%">Start Date/Time</th>
+                <th width="5%">End Date/Time</th>
+                <th width="5%">Type</th>
+                <th width="5%">Presenter(s)</th>
+                <th width="5%">Action</th>
+              </tr>
+            </thead>
+            <tbody>{upEventsList}</tbody>
+          </Table>
+        </div>
+      );
+    } else if (this.props.match.params.id !== "new") {
+      upEvents = (
+        <p>
+          <h6>
+            <i>No Upcoming Events with {item.orgname}.</i>
+          </h6>
+          <br></br>
+        </p>
+      );
+    }
+
+    //Past events
+    let pastEvents = "";
+    let pastEventsList = "";
+    if (item.pastEvents.length > 0) {
+      pastEventsList = item.pastEvents.map((event) => {
+        return (
+          <tr key={event.eventId}>
+            <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
+            <td>{event.startDateTime}</td>
+            <td>{event.endDateTime}</td>
+            <td>{event.eventType}</td>
+            <td>
+              {event.eventPresenters.map((presenter) => {
+                return (
+                  <ul>
+                    <li>{presenter}</li>
+                  </ul>
+                );
+              })}
+            </td>
+            <td>
+              <ButtonGroup>
+                <Button
+                  size="sm"
+                  color="primary"
+                  tag={Link}
+                  to={"/event/" + event.eventId}
+                >
+                  Edit
+                </Button>
+              </ButtonGroup>
+            </td>
+          </tr>
+        );
+      });
+      pastEvents = (
+        <div>
+          <h5>Past Events with {item.orgname}</h5>
+          <Table className="mt-1">
+            <thead>
+              <tr>
+                <th width="5%">Location</th>
+                <th width="5%">Start Date/Time</th>
+                <th width="5%">End Date/Time</th>
+                <th width="5%">Type</th>
+                <th width="5%">Presenter(s)</th>
+                <th width="5%">Action</th>
+              </tr>
+            </thead>
+            <tbody>{pastEventsList}</tbody>
+          </Table>
+        </div>
+      );
+    } else if (this.props.match.params.id !== "new") {
+      pastEvents = (
+        <p>
+          <h6>
+            <i>No Past Events with {item.orgname}.</i>
+          </h6>
+          <br></br>
+        </p>
+      );
+    }
 
     return (
       <div>
@@ -473,6 +598,11 @@ class OrgEdit extends Component {
               </FormGroup>
             </div>
             <React.Fragment>{contacts}</React.Fragment>
+            <React.Fragment>
+              <p>
+                <div>{upEvents}</div>
+              </p>
+            </React.Fragment>
             <FormGroup>
               <Button color="primary" type="submit">
                 Save
@@ -495,6 +625,9 @@ class OrgEdit extends Component {
             >
               Add Contact
             </Button>
+          </p>
+          <p>
+            <div>{pastEvents}</div>
           </p>
           <p>&nbsp;</p>
         </Container>
