@@ -53,7 +53,7 @@ class AllOrgsList extends Component {
     return (
       <div>
         <AppNavbar />
-        <Container fluid>
+        <Container>
           <div className="float-right">
             <Button color="success" tag={Link} to="/organizations/new">
               Add Organization

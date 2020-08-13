@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import {
   Button,
@@ -24,8 +24,7 @@ class OrgEdit extends Component {
     email: "",
     zip: "",
     orgContacts: [],
-    upcomingEvents: [],
-    pastEvents: [],
+    eventOrgs: [],
   };
 
   emptyContact = {
@@ -234,11 +233,8 @@ class OrgEdit extends Component {
               />
             </FormGroup>
             <FormGroup className="col-md-2 mb-2">
-              <Label for="email">
-                Contact Email <span class="required">*</span>
-              </Label>
+              <Label for="email">Contact Email</Label>
               <Input
-                required
                 type="text"
                 name="email"
                 id="email"
@@ -355,35 +351,45 @@ class OrgEdit extends Component {
       );
     }
     //Upcoming Events Table
+    var eventCounter = 0;
+    let date = new Date();
+    let y = date.getFullYear();
+    let m = date.getMonth();
+    let d = date.getDate();
+    let today = new Date(y, m, d);
     let upEvents = "";
     let upEventsList = "";
-    if (item.upcomingEvents.length > 0) {
-      upEventsList = item.upcomingEvents.map((event) => {
-        return (
-          <tr key={event.eventId}>
-            <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
-            <td>{event.startDateTime}</td>
-            <td>{event.endDateTime}</td>
-            <td>{event.eventType}</td>
-            <td>
-              {event.eventPresenters.map((presenter) => {
-                return presenter;
-              })}
-            </td>
-            <td>
-              <ButtonGroup>
-                <Button
-                  size="sm"
-                  color="primary"
-                  tag={Link}
-                  to={"/event/" + event.eventId}
-                >
-                  Edit
-                </Button>
-              </ButtonGroup>
-            </td>
-          </tr>
-        );
+    if (item.eventOrgs.length > 0) {
+      upEventsList = item.eventOrgs.map((event) => {
+        var eventDate = new Date(event.startDateTime);
+        if (eventDate >= today) {
+          eventCounter = eventCounter + 1;
+          return (
+            <tr key={event.eventId}>
+              <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
+              <td>{event.startDateTime}</td>
+              <td>{event.endDateTime}</td>
+              <td>{event.eventType}</td>
+              <td>
+                {event.eventPresenters.map((presenter) => {
+                  return presenter;
+                })}
+              </td>
+              <td>
+                <ButtonGroup>
+                  <Button
+                    size="sm"
+                    color="primary"
+                    tag={Link}
+                    to={"/events/" + event.eventId}
+                  >
+                    Edit
+                  </Button>
+                </ButtonGroup>
+              </td>
+            </tr>
+          );
+        }
       });
       upEvents = (
         <div>
@@ -403,7 +409,8 @@ class OrgEdit extends Component {
           </Table>
         </div>
       );
-    } else if (this.props.match.params.id !== "new") {
+    }
+    if (this.props.match.params.id !== "new" && eventCounter < 1) {
       upEvents = (
         <p>
           <h6>
@@ -415,39 +422,44 @@ class OrgEdit extends Component {
     }
 
     //Past events
+    eventCounter = 0; //reset to zero
     let pastEvents = "";
     let pastEventsList = "";
-    if (item.pastEvents.length > 0) {
-      pastEventsList = item.pastEvents.map((event) => {
-        return (
-          <tr key={event.eventId}>
-            <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
-            <td>{event.startDateTime}</td>
-            <td>{event.endDateTime}</td>
-            <td>{event.eventType}</td>
-            <td>
-              {event.eventPresenters.map((presenter) => {
-                return (
-                  <ul>
-                    <li>{presenter}</li>
-                  </ul>
-                );
-              })}
-            </td>
-            <td>
-              <ButtonGroup>
-                <Button
-                  size="sm"
-                  color="primary"
-                  tag={Link}
-                  to={"/event/" + event.eventId}
-                >
-                  Edit
-                </Button>
-              </ButtonGroup>
-            </td>
-          </tr>
-        );
+    if (item.eventOrgs.length > 0) {
+      pastEventsList = item.eventOrgs.map((event) => {
+        var eventDate = new Date(event.startDateTime);
+        if (eventDate < today) {
+          eventCounter = eventCounter + 1;
+          return (
+            <tr key={event.eventId}>
+              <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
+              <td>{event.startDateTime}</td>
+              <td>{event.endDateTime}</td>
+              <td>{event.eventType}</td>
+              <td>
+                {event.eventPresenters.map((presenter) => {
+                  return (
+                    <div>
+                      {presenter} <br></br>
+                    </div>
+                  );
+                })}
+              </td>
+              <td>
+                <ButtonGroup>
+                  <Button
+                    size="sm"
+                    color="primary"
+                    tag={Link}
+                    to={"/events/" + event.eventId}
+                  >
+                    Edit
+                  </Button>
+                </ButtonGroup>
+              </td>
+            </tr>
+          );
+        }
       });
       pastEvents = (
         <div>
@@ -467,7 +479,8 @@ class OrgEdit extends Component {
           </Table>
         </div>
       );
-    } else if (this.props.match.params.id !== "new") {
+    }
+    if (this.props.match.params.id !== "new" && eventCounter < 1) {
       pastEvents = (
         <p>
           <h6>
@@ -481,6 +494,17 @@ class OrgEdit extends Component {
     return (
       <div>
         <AppNavbar />
+        {item.orgId ? (
+          <Container>
+            <div className="float-right">
+              <Button color="success" href="/organizations/new">
+                Add new Organization instead?
+              </Button>
+            </div>
+          </Container>
+        ) : (
+          ""
+        )}
         <Container>
           {title}
           <Alert
@@ -536,7 +560,7 @@ class OrgEdit extends Component {
             </FormGroup>
             <div className="row">
               <FormGroup className="col-md-4 mb-3">
-                <Label for="phone">Phone</Label>
+                <Label for="phone">Corporate Phone</Label>
                 <Input
                   type="text"
                   name="phone"
@@ -547,7 +571,7 @@ class OrgEdit extends Component {
                 />
               </FormGroup>
               <FormGroup className="col-md-5 mb-3">
-                <Label for="email">Email</Label>
+                <Label for="email">Corporate Email</Label>
                 <Input
                   type="text"
                   name="email"

@@ -31,15 +31,20 @@ class EventList extends Component {
     const eventList = events.map((event) => {
       return (
         <tr key={event.eventId}>
-          <td style={{ whiteSpace: "nowrap" }}>{event.eventName}</td>
+          <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
           <td>
-            {event.location} {event.address}
+            {event.eventPresenters.map((presenter) => {
+              return (
+                <div>
+                  {presenter} <br></br>
+                </div>
+              );
+            })}
           </td>
           <td>{event.city}</td>
-          <td>{event.zip}</td>
           <td>{event.startDateTime}</td>
           <td>{event.endDateTime}</td>
-          <td>{event.eventType}</td>
+          <td>{event.eventTypeDesc}</td>
           <td>
             <ButtonGroup>
               <Button
@@ -59,20 +64,21 @@ class EventList extends Component {
     return (
       <div>
         <AppNavbar />
-        <Container fluid>
+        <Container>
           <div className="float-right">
             <Button color="success" tag={Link} to="/events/new">
               Add Event
             </Button>
           </div>
+        </Container>
+        <Container>
           <h3>Events</h3>
           <Table className="mt-4">
             <thead>
               <tr>
-                <th width="10%">Event Name</th>
                 <th width="15%">Location</th>
+                <th width="10%">Presenter(s)</th>
                 <th width="10%">City</th>
-                <th width="10%">Zip</th>
                 <th width="10%">Start Time</th>
                 <th width="10%">End Time</th>
                 <th width="10%">Type</th>
