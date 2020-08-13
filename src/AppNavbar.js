@@ -42,7 +42,7 @@ export default class AppNavbar extends Component {
     return (
       <Navbar dark expand="md">
         <NavbarBrand tag={Link} to="/">
-          <img class="logo" src="/rta_logo.png"></img>
+          <img alt="RTA" className="logo" src="/rta_logo.png"></img>
         </NavbarBrand>
         <NavbarToggler dark onClick={this.toggle} />
         <Collapse isOpen={this.state.isOpen} navbar>
