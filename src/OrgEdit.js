@@ -208,11 +208,8 @@ class OrgEdit extends Component {
               />
             </FormGroup>
             <FormGroup className="col-md-2 mb-2">
-              <Label for="lastName">
-                Last Name <span class="required">*</span>
-              </Label>
+              <Label for="lastName">Last Name</Label>
               <Input
-                required
                 type="text"
                 name="lastName"
                 id="lastName"
@@ -316,7 +313,7 @@ class OrgEdit extends Component {
       contacts = (
         <div>
           <h5>Contact List for {item.orgname}</h5>
-          <Table className="mt-1">
+          <Table responsive>
             <thead>
               <tr>
                 <th width="5%">First Name</th>
@@ -391,24 +388,26 @@ class OrgEdit extends Component {
           );
         }
       });
-      upEvents = (
-        <div>
-          <h5>Upcoming Events with {item.orgname}</h5>
-          <Table className="mt-1">
-            <thead>
-              <tr>
-                <th width="5%">Location</th>
-                <th width="5%">Start Date/Time</th>
-                <th width="5%">End Date/Time</th>
-                <th width="5%">Type</th>
-                <th width="5%">Presenter(s)</th>
-                <th width="5%">Action</th>
-              </tr>
-            </thead>
-            <tbody>{upEventsList}</tbody>
-          </Table>
-        </div>
-      );
+      if (eventCounter > 0) {
+        upEvents = (
+          <div>
+            <h5>Upcoming Events with {item.orgname}</h5>
+            <Table responsive>
+              <thead>
+                <tr>
+                  <th width="5%">Location</th>
+                  <th width="5%">Start Date/Time</th>
+                  <th width="5%">End Date/Time</th>
+                  <th width="5%">Type</th>
+                  <th width="5%">Presenter(s)</th>
+                  <th width="5%">Action</th>
+                </tr>
+              </thead>
+              <tbody>{upEventsList}</tbody>
+            </Table>
+          </div>
+        );
+      }
     }
     if (this.props.match.params.id !== "new" && eventCounter < 1) {
       upEvents = (
@@ -461,24 +460,26 @@ class OrgEdit extends Component {
           );
         }
       });
-      pastEvents = (
-        <div>
-          <h5>Past Events with {item.orgname}</h5>
-          <Table className="mt-1">
-            <thead>
-              <tr>
-                <th width="5%">Location</th>
-                <th width="5%">Start Date/Time</th>
-                <th width="5%">End Date/Time</th>
-                <th width="5%">Type</th>
-                <th width="5%">Presenter(s)</th>
-                <th width="5%">Action</th>
-              </tr>
-            </thead>
-            <tbody>{pastEventsList}</tbody>
-          </Table>
-        </div>
-      );
+      if (eventCounter > 0) {
+        pastEvents = (
+          <div>
+            <h5>Past Events with {item.orgname}</h5>
+            <Table responsive>
+              <thead>
+                <tr>
+                  <th width="5%">Location</th>
+                  <th width="5%">Start Date/Time</th>
+                  <th width="5%">End Date/Time</th>
+                  <th width="5%">Type</th>
+                  <th width="5%">Presenter(s)</th>
+                  <th width="5%">Action</th>
+                </tr>
+              </thead>
+              <tbody>{pastEventsList}</tbody>
+            </Table>
+          </div>
+        );
+      }
     }
     if (this.props.match.params.id !== "new" && eventCounter < 1) {
       pastEvents = (
