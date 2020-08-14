@@ -29,7 +29,7 @@ class EventEdit extends Component {
     eventTypeDesc: "",
     eventPresenters: [],
     eventAudienceType: [],
-    orgNames: [],
+    orgNames: {},
   };
 
   constructor(props) {
@@ -78,6 +78,49 @@ class EventEdit extends Component {
     const { event } = this.state;
 
     const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
+
+    let orgs = "";
+    if (event.orgNames) {
+      let orgList = "";
+      orgList = Object.entries(event.orgNames).map(([key, value]) => {
+        return (
+          <tr key={key}>
+            <td>{value}</td>
+            <td>
+              <ButtonGroup>
+                <Button
+                  size="sm"
+                  color="primary"
+                  tag={Link}
+                  to={"/organizations/" + key}
+                >
+                  Edit
+                </Button>
+                <Button size="sm" color="danger">
+                  Remove Org
+                </Button>
+              </ButtonGroup>
+            </td>
+          </tr>
+        );
+      });
+      orgs = (
+        <Container fluid="md">
+          <div>
+            <h5>Organization(s) part of this Event</h5>
+            <Table responsive bordered dark hover>
+              <thead>
+                <tr>
+                  <th width="20%">Name</th>
+                  <th width="10%">Action</th>
+                </tr>
+              </thead>
+              <tbody>{orgList}</tbody>
+            </Table>
+          </div>
+        </Container>
+      );
+    }
 
     return (
       <div>
@@ -221,11 +264,11 @@ class EventEdit extends Component {
                   <option></option>
                   <option>Presentation</option>
                   <option>Resource Fair</option>
-                  <option>Vitual Presentation</option>
+                  <option>Virtual Presentation</option>
                 </Input>
               </FormGroup>
             </div>
-
+            <React.Fragment>{orgs}</React.Fragment>
             <FormGroup>
               <Button color="primary" type="submit">
                 Save Event
