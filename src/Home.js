@@ -9,7 +9,7 @@ class Home extends Component {
       <div>
         <AppNavbar />
         <div>
-          <Container fluid>
+          <Container style={{ float: "left" }}>
             <Jumbotron>
               <h3 className="display-4">Mobility Management CRM</h3>
               <h3 className="display-4">Home</h3>

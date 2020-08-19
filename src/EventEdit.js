@@ -11,6 +11,8 @@ import {
   Table,
   Alert,
 } from "reactstrap";
+import TextField from "@material-ui/core/TextField";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 import AppNavbar from "./AppNavbar";
 
 class EventEdit extends Component {
@@ -36,9 +38,12 @@ class EventEdit extends Component {
     super(props);
     this.state = {
       event: this.emptyEvent,
+      orgId: "-1",
+      allOrgNames: [],
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleSelect = this.handleSelect.bind(this);
   }
 
   async componentDidMount() {
@@ -48,6 +53,15 @@ class EventEdit extends Component {
       ).json();
       this.setState({ event: exEvent });
     }
+    //load all Org names into this constant
+    const fetchOrgs = await (await fetch(`/api/allorgnames`)).json();
+    this.setState({ allOrgNames: fetchOrgs });
+  }
+
+  handleSelect(e, newValue) {
+    let id = newValue ? newValue.OrgID : "-1";
+    this.setState({ orgId: id });
+    console.log("Handle Select Called" + " " + "New Value Id " + id);
   }
 
   handleChange(e) {
@@ -55,6 +69,7 @@ class EventEdit extends Component {
     const value = target.value;
     const name = target.name;
     let event = { ...this.state.event };
+    console.log("Handle Change called: " + value + " " + name);
     event[name] = value;
     this.setState({ event });
   }
@@ -62,8 +77,9 @@ class EventEdit extends Component {
   async handleSubmit(e) {
     e.preventDefault();
     const { event } = this.state;
+    const { orgId } = this.state;
     console.log("handleSubmit Called!");
-    await fetch(`/api/event/${event.eventTypeDesc}`, {
+    await fetch(`/api/event/${event.eventTypeDesc}/${orgId}`, {
       method: event.eventId ? "PUT" : "POST",
       headers: {
         Accept: "application/json",
@@ -76,6 +92,18 @@ class EventEdit extends Component {
 
   render() {
     const { event } = this.state;
+    const { allOrgNames } = this.state;
+    // Top 100 films as rated by IMDb users. http://www.imdb.com/chart/top
+    const top100Films = [
+      { title: "The Shawshank Redemption", id: 1 },
+      { title: "The Godfather", id: 2 },
+      { title: "The Godfather: Part II", id: 3 },
+      { title: "The Dark Knight", id: 4 },
+      { title: "12 Angry Men", id: 5 },
+      { title: "Schindler's List", id: 6 },
+      { title: "Pulp Fiction", id: 7 },
+      { title: "The Lord of the Rings: The Return of the King", id: 8 },
+    ];
 
     const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
 
@@ -105,7 +133,7 @@ class EventEdit extends Component {
         );
       });
       orgs = (
-        <Container fluid="md">
+        <Container fluid>
           <div>
             <h5>Organization(s) part of this Event</h5>
             <Table responsive bordered dark hover>
@@ -153,7 +181,7 @@ class EventEdit extends Component {
             </FormGroup>
             <FormGroup>
               <Label for="location">
-                Location <span class="required">*</span>
+                Location <span className="required">*</span>
               </Label>
               <Input
                 required
@@ -250,7 +278,7 @@ class EventEdit extends Component {
               </FormGroup>
               <FormGroup className="col-md-3 mb-3">
                 <Label for="eventTypeDesc">
-                  Event Type <span class="required">*</span>
+                  Event Type <span className="required">*</span>
                 </Label>
                 <Input
                   required
@@ -267,6 +295,29 @@ class EventEdit extends Component {
                   <option>Virtual Presentation</option>
                 </Input>
               </FormGroup>
+            </div>
+            <div className="row">
+              <Autocomplete
+                id="combo-box-demo"
+                options={allOrgNames}
+                getOptionLabel={(option) => option.orgname}
+                renderOption={(option) => (
+                  <React.Fragment>
+                    <span>{option.OrgID}</span>
+                    {option.orgname}
+                  </React.Fragment>
+                )}
+                onChange={this.handleSelect}
+                style={{ width: 300 }}
+                name="associatedOrg"
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Link Org. with this Event"
+                    variant="outlined"
+                  />
+                )}
+              />
             </div>
             <React.Fragment>{orgs}</React.Fragment>
             <FormGroup>

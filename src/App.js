@@ -9,6 +9,7 @@ import OrgEdit from "./OrgEdit";
 import OrgRead from "./OrgRead";
 import ContactEdit from "./ContactEdit";
 import EventEdit from "./EventEdit";
+import TestMaterialUI from "./TestMaterialUI";
 
 class App extends Component {
   render() {
@@ -23,6 +24,11 @@ class App extends Component {
           <Route path="/organizations/read/:id" component={OrgRead} />
           <Route path="/contact/:id" component={ContactEdit} />
           <Route path="/events/:id" component={EventEdit} />
+          <Route
+            path="/test-material"
+            exact={true}
+            component={TestMaterialUI}
+          />
         </Switch>
       </Router>
     );
