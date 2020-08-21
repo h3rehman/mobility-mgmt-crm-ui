@@ -40,10 +40,13 @@ class EventEdit extends Component {
       event: this.emptyEvent,
       orgId: "-1",
       allOrgNames: [],
+      eventUpdateAlert: false,
+      newEventAlert: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleSelect = this.handleSelect.bind(this);
+    this.removeOrg = this.removeOrg.bind(this);
   }
 
   async componentDidMount() {
@@ -56,6 +59,27 @@ class EventEdit extends Component {
     //load all Org names into this constant
     const fetchOrgs = await (await fetch(`/api/allorgnames`)).json();
     this.setState({ allOrgNames: fetchOrgs });
+  }
+
+  async removeOrg(eventId, orgId) {
+    Object.filter = (obj, predicate) =>
+      Object.fromEntries(Object.entries(obj).filter(predicate));
+
+    await fetch(`/api/removeOrg/${eventId}/${orgId}`, {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }).then(() => {
+      let updatedOrgs = Object.filter(
+        this.state.event.orgNames,
+        ([id, name]) => id != orgId
+      );
+      this.setState({
+        event: { ...this.state.event, orgNames: updatedOrgs },
+      });
+    });
   }
 
   handleSelect(e, newValue) {
@@ -79,6 +103,8 @@ class EventEdit extends Component {
     const { event } = this.state;
     const { orgId } = this.state;
     console.log("handleSubmit Called!");
+    let headerEntries = "";
+    let postId = "";
     await fetch(`/api/event/${event.eventTypeDesc}/${orgId}`, {
       method: event.eventId ? "PUT" : "POST",
       headers: {
@@ -86,29 +112,52 @@ class EventEdit extends Component {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(event),
+    }).then((response) => {
+      headerEntries = response.headers.entries();
     });
+
+    if (event.eventId) {
+      //For PUT Calls
+      console.log("Alert condition called");
+      this.setState({ eventUpdateAlert: true });
+      window.scrollTo(0, 0);
+      window.setTimeout(() => {
+        this.setState({ eventUpdateAlert: false });
+      }, 1000);
+      await new Promise((r) => setTimeout(r, 1000));
+      window.location.href = "/events/" + event.eventId;
+    } else {
+      //For POST Calls
+      this.setState({ newEventAlert: true });
+      window.scrollTo(0, 0);
+      await new Promise((r) => setTimeout(r, 3000));
+      for (var pair of headerEntries) {
+        console.log(pair[0] + ": " + pair[1]);
+        if (pair[0] === "location") {
+          let loc = pair[1].toString();
+          postId = loc.split("/").pop();
+          console.log("Post Id: " + postId);
+          window.location.href = "/events/" + postId;
+          break;
+        }
+      }
+    }
     // this.props.history.push("/events");
   }
 
   render() {
     const { event } = this.state;
     const { allOrgNames } = this.state;
-    // Top 100 films as rated by IMDb users. http://www.imdb.com/chart/top
-    const top100Films = [
-      { title: "The Shawshank Redemption", id: 1 },
-      { title: "The Godfather", id: 2 },
-      { title: "The Godfather: Part II", id: 3 },
-      { title: "The Dark Knight", id: 4 },
-      { title: "12 Angry Men", id: 5 },
-      { title: "Schindler's List", id: 6 },
-      { title: "Pulp Fiction", id: 7 },
-      { title: "The Lord of the Rings: The Return of the King", id: 8 },
-    ];
+    const { eventUpdateAlert } = this.state;
+    const { newEventAlert } = this.state;
+    const dismissEventUpdateAlert = () =>
+      this.setState({ eventUpdateAlert: false });
+    const dismissNewEveAlert = () => this.setState({ newEventAlert: false });
 
     const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
 
     let orgs = "";
-    if (event.orgNames) {
+    if (Object.keys(event.orgNames).length > 0) {
       let orgList = "";
       orgList = Object.entries(event.orgNames).map(([key, value]) => {
         return (
@@ -124,8 +173,19 @@ class EventEdit extends Component {
                 >
                   Edit
                 </Button>
-                <Button size="sm" color="danger">
-                  Remove Org
+                <Button
+                  size="sm"
+                  color="danger"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Are you sure you want to remove this Org.? Upon removing, the Org. will be disassociated from this Event but continue to exist in the Database."
+                      )
+                    )
+                      this.removeOrg(event.eventId, key);
+                  }}
+                >
+                  Remove
                 </Button>
               </ButtonGroup>
             </td>
@@ -148,6 +208,18 @@ class EventEdit extends Component {
           </div>
         </Container>
       );
+    } else if (this.props.match.params.id !== "new") {
+      orgs = (
+        <p>
+          <br></br>
+          <h6>
+            <i>No Organization associated with this Event.</i>
+          </h6>
+          <br></br>
+        </p>
+      );
+    } else {
+      orgs = <p>&nbsp;</p>;
     }
 
     return (
@@ -166,7 +238,20 @@ class EventEdit extends Component {
         )}
         <Container>
           {title}
-
+          <Alert
+            color="info"
+            isOpen={eventUpdateAlert}
+            toggle={dismissEventUpdateAlert}
+          >
+            Event has been updated!
+          </Alert>
+          <Alert
+            color="success"
+            isOpen={newEventAlert}
+            toggle={dismissNewEveAlert}
+          >
+            New Event is created! PLEASE WAIT FOR THE PAGE TO REFRESH!
+          </Alert>
           <Form onSubmit={this.handleSubmit}>
             <FormGroup>
               <Label for="eventName">Name</Label>
