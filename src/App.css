@@ -73,3 +73,22 @@
 .required {
   color: red;
 }
+
+/*Blocks*/
+.detailsBlock {
+  margin-left: 1rem;
+  margin-top: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.paraSpace {
+  padding-bottom: 5px;
+}
+
+.field {
+  color: grey;
+}
+
+.fieldSpace {
+  padding-left: 15px;
+}
