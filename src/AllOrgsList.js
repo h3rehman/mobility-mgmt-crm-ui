@@ -31,7 +31,9 @@ class AllOrgsList extends Component {
     const orgList = orgs.map((org) => {
       return (
         <tr key={org.orgId}>
-          <td style={{ whiteSpace: "nowrap" }}>{org.orgname}</td>
+          <td style={{ whiteSpace: "nowrap" }}>
+            <Link to={"/organization/read/" + org.orgId}>{org.orgname}</Link>
+          </td>
           <td>{org.city}</td>
           <td>{org.countyName}</td>
           <td>
@@ -60,7 +62,7 @@ class AllOrgsList extends Component {
             </Button>
           </div>
           <h3>Organizations</h3>
-          <Table className="mt-4">
+          <Table className="mt-4" hover>
             <thead>
               <tr>
                 <th width="20%">Name</th>

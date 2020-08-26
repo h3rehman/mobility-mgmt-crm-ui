@@ -229,7 +229,7 @@ class EventEdit extends Component {
           <Container>
             <div className="float-right">
               <Button color="success" href="/events/new">
-                Add new Event instead?
+                Add new event?
               </Button>
             </div>
           </Container>

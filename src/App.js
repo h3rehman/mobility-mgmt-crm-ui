@@ -21,7 +21,7 @@ class App extends Component {
           <Route path="/events" exact={true} component={EventList} />
           <Route path="/appointments/1" exact={true} component={MyEvents} />
           <Route path="/organizations/:id" component={OrgEdit} />
-          <Route path="/organizations/read/:id" component={OrgRead} />
+          <Route path="/organization/read/:id" component={OrgRead} />
           <Route path="/contact/:id" component={ContactEdit} />
           <Route path="/events/:id" component={EventEdit} />
           <Route
