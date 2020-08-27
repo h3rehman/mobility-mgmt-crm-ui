@@ -1,15 +1,6 @@
 import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
-import {
-  Button,
-  Container,
-  Form,
-  FormGroup,
-  Input,
-  Label,
-  ButtonGroup,
-  Table,
-} from "reactstrap";
+import { Button, Container, ButtonGroup, Table } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 
 class OrgRead extends Component {
@@ -61,7 +52,7 @@ class OrgRead extends Component {
                   size="sm"
                   color="primary"
                   tag={Link}
-                  to={"/contacts/" + contact.contactId}
+                  to={"/contact/" + contact.contactId}
                 >
                   Edit
                 </Button>
@@ -272,10 +263,10 @@ class OrgRead extends Component {
             </div>
             <div className="row paraSpace">
               <div>
-                <span className="field">City:</span> {item.orgname}
+                <span className="field">City:</span> {item.city}
               </div>
               <div>
-                <span className="field fieldSpace">County:</span>{" "}
+                <span className="field fieldSpace">County:</span>
                 {item.countyName}
               </div>
               <div>
@@ -287,7 +278,7 @@ class OrgRead extends Component {
                 <span className="field">Corporate Phone:</span> {item.phone}
               </div>
               <div>
-                <span className="field fieldSpace">Corporate Email:</span>{" "}
+                <span className="field fieldSpace">Corporate Email:</span>
                 {item.email}
               </div>
             </div>

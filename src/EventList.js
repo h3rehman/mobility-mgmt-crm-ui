@@ -31,7 +31,9 @@ class EventList extends Component {
     const eventList = events.map((event) => {
       return (
         <tr key={event.eventId}>
-          <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
+          <td style={{ whiteSpace: "nowrap" }}>
+            <Link to={"/event/read/" + event.eventId}>{event.location}</Link>
+          </td>
           <td>
             {event.eventPresenters.map((presenter) => {
               return (
