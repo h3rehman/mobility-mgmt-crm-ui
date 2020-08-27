@@ -85,7 +85,6 @@ class EventEdit extends Component {
   handleSelect(e, newValue) {
     let id = newValue ? newValue.OrgID : "-1";
     this.setState({ orgId: id });
-    console.log("Handle Select Called" + " " + "New Value Id " + id);
   }
 
   handleChange(e) {
@@ -155,7 +154,7 @@ class EventEdit extends Component {
     const dismissNewEveAlert = () => this.setState({ newEventAlert: false });
 
     const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
-
+    //Orgs associated with this Event
     let orgs = "";
     if (Object.keys(event.orgNames).length > 0) {
       let orgList = "";
