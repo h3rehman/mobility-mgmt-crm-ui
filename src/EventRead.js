@@ -2,8 +2,14 @@ import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import { Button, Container, ButtonGroup, Table } from "reactstrap";
 import AppNavbar from "./AppNavbar";
+import { instanceOf } from "prop-types";
+import { withCookies, Cookies } from "react-cookie";
 
 class EventRead extends Component {
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired,
+  };
+
   emptyEvent = {
     eventId: "",
     eventName: "",
@@ -24,16 +30,61 @@ class EventRead extends Component {
 
   constructor(props) {
     super(props);
+    const { cookies } = props;
     this.state = {
       event: this.emptyEvent,
+      csrfToken: cookies.get("XSRF-TOKEN"),
+      eventJoined: false,
     };
   }
 
   async componentDidMount() {
     const exEvent = await (
-      await fetch(`/api/events/${this.props.match.params.id}`)
+      await fetch(`/api/events/${this.props.match.params.id}`, {
+        credentials: "include",
+      })
     ).json();
+
     this.setState({ event: exEvent });
+    const eveJoined = await (
+      await fetch(`/api/checkPresenter/${this.props.match.params.id}`, {
+        credentials: "include",
+      })
+    ).json();
+    this.setState({ eventJoined: eveJoined });
+  }
+
+  async joinEvent() {
+    const { event } = this.state;
+    console.log("Join Event Called!");
+
+    await fetch(`/api/joinevent/${event.eventId}`, {
+      method: "PUT",
+      headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    }).then(() => {
+      this.setState({ eventJoined: true });
+    });
+    window.location.href = "/event/read/" + event.eventId;
+  }
+
+  async removePresenter(eventId) {
+    await fetch(`/api/removePresenter/${eventId}`, {
+      method: "DELETE",
+      headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    }).then(() => {
+      this.setState({ eventJoined: false });
+    });
+    window.location.href = "/event/read/" + eventId;
   }
 
   render() {
@@ -87,6 +138,42 @@ class EventRead extends Component {
         </p>
       );
     }
+
+    let presenters = "";
+    let presenterList = "";
+    if (event.eventPresenters.length > 0) {
+      presenterList = event.eventPresenters.map((presenter) => {
+        return (
+          <tr key={presenter}>
+            <td style={{ whiteSpace: "nowrap" }}>{presenter}</td>
+          </tr>
+        );
+      });
+      presenters = (
+        <div>
+          <h6>Event Presenter(s)</h6>
+          <Table responsive bordered hover className="small">
+            <thead>
+              <tr>
+                <th width="5%">Name</th>
+              </tr>
+            </thead>
+            <tbody>{presenterList}</tbody>
+          </Table>
+        </div>
+      );
+    } else {
+      presenters = (
+        <p>
+          <h6>
+            <i>No Presenter has joined this event.</i>
+          </h6>
+          <br></br>
+          <p>&nbsp;</p>
+        </p>
+      );
+    }
+
     return (
       <div>
         <AppNavbar />
@@ -146,10 +233,29 @@ class EventRead extends Component {
             </div>
           </div>
           <div>{orgs}</div>
+          <div>{presenters}</div>
+
+          <div>
+            {this.state.eventJoined ? (
+              <Button
+                size="sm"
+                color="warning"
+                onClick={() => this.removePresenter(event.eventId)}
+              >
+                Remove me from Event
+              </Button>
+            ) : (
+              <Button size="sm" color="info" onClick={() => this.joinEvent()}>
+                <b>Join Event</b>
+              </Button>
+            )}
+          </div>
+          <p>&nbsp;</p>
+          <p>&nbsp;</p>
         </Container>
       </div>
     );
   }
 }
 
-export default withRouter(EventRead);
+export default withCookies(EventRead);

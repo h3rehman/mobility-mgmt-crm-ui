@@ -2,17 +2,28 @@ import React, { Component } from "react";
 import { Button, ButtonGroup, Container, Table } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
+import { instanceOf } from "prop-types";
+import { withCookies, Cookies } from "react-cookie";
 
 class EventList extends Component {
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired,
+  };
+
   constructor(props) {
     super(props);
-    this.state = { events: [], isLoading: true };
+    const { cookies } = props;
+    this.state = {
+      events: [],
+      csrfToken: cookies.get("XSRF-TOKEN"),
+      isLoading: true,
+    };
   }
 
   componentDidMount() {
     this.setState({ isLoading: true });
 
-    fetch("/api/events")
+    fetch("/api/events", { credentials: "include" })
       .then((response) => response.json())
       .then((data) => this.setState({ events: data, isLoading: false }));
   }
@@ -95,4 +106,4 @@ class EventList extends Component {
   }
 }
 
-export default EventList;
+export default withCookies(EventList);

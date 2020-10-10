@@ -10,12 +10,20 @@ import {
   ButtonGroup,
   Table,
   Alert,
+  CustomInput,
 } from "reactstrap";
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import { Switch, FormControlLabel } from "@material-ui/core";
 import AppNavbar from "./AppNavbar";
+import { instanceOf } from "prop-types";
+import { withCookies, Cookies } from "react-cookie";
 
 class EventEdit extends Component {
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired,
+  };
+
   emptyEvent = {
     eventId: "",
     eventName: "",
@@ -36,28 +44,36 @@ class EventEdit extends Component {
 
   constructor(props) {
     super(props);
+    const { cookies } = props;
     this.state = {
       event: this.emptyEvent,
       orgId: "-1",
       allOrgNames: [],
       eventUpdateAlert: false,
       newEventAlert: false,
+      joinEve: false,
+      csrfToken: cookies.get("XSRF-TOKEN"),
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleSelect = this.handleSelect.bind(this);
     this.removeOrg = this.removeOrg.bind(this);
+    this.joinEventSwitch = this.joinEventSwitch.bind(this);
   }
 
   async componentDidMount() {
     if (this.props.match.params.id !== "new") {
       const exEvent = await (
-        await fetch(`/api/events/${this.props.match.params.id}`)
+        await fetch(`/api/events/${this.props.match.params.id}`, {
+          credentials: "include",
+        })
       ).json();
       this.setState({ event: exEvent });
     }
     //load all Org names into this constant
-    const fetchOrgs = await (await fetch(`/api/allorgnames`)).json();
+    const fetchOrgs = await (
+      await fetch(`/api/allorgnames`, { credentials: "include" })
+    ).json();
     this.setState({ allOrgNames: fetchOrgs });
   }
 
@@ -68,9 +84,11 @@ class EventEdit extends Component {
     await fetch(`/api/removeOrg/${eventId}/${orgId}`, {
       method: "DELETE",
       headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
+      credentials: "include",
     }).then(() => {
       let updatedOrgs = Object.filter(
         this.state.event.orgNames,
@@ -80,6 +98,24 @@ class EventEdit extends Component {
         event: { ...this.state.event, orgNames: updatedOrgs },
       });
     });
+  }
+
+  joinEventSwitch() {
+    console.log("Join Event Switch called: " + this.state.joinEve);
+    if (this.state.joinEve === true) {
+      const setSwitch = false;
+      this.setState({ joinEve: setSwitch });
+      console.log("Set to: " + this.state.joinEve);
+      console.log("False called");
+    } else {
+      const setSwitch = true;
+      this.setState({ joinEve: setSwitch });
+      console.log("Set to: " + this.state.joinEve);
+      console.log("True called");
+      const { joinEve } = this.state;
+      console.log(joinEve);
+    }
+    console.log("Switch set to: " + this.state.joinEve);
   }
 
   handleSelect(e, newValue) {
@@ -101,15 +137,21 @@ class EventEdit extends Component {
     e.preventDefault();
     const { event } = this.state;
     const { orgId } = this.state;
+    const { joinEve } = this.state;
     console.log("handleSubmit Called!");
     let headerEntries = "";
     let postId = "";
-    await fetch(`/api/event/${event.eventTypeDesc}/${orgId}`, {
+
+    event.eventPresenters = null; //making it null before the PUT call, creating a deserialization error in Jackson otherwise
+
+    await fetch(`/api/event/${event.eventTypeDesc}/${orgId}/${joinEve}`, {
       method: event.eventId ? "PUT" : "POST",
       headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify(event),
     }).then((response) => {
       headerEntries = response.headers.entries();
@@ -136,12 +178,12 @@ class EventEdit extends Component {
           let loc = pair[1].toString();
           postId = loc.split("/").pop();
           console.log("Post Id: " + postId);
-          window.location.href = "/events/" + postId;
+          window.location.href = "/event/read/" + postId;
           break;
         }
       }
     }
-    // this.props.history.push("/events");
+    // window.location.href = "/event/read/" + event.eventId;
   }
 
   render() {
@@ -154,6 +196,34 @@ class EventEdit extends Component {
     const dismissNewEveAlert = () => this.setState({ newEventAlert: false });
 
     const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
+
+    let joinEventSwitch = "";
+
+    if (!event.eventId) {
+      // joinEventSwitch = (
+      //   <CustomInput
+      //     type="switch"
+      //     id="joinEveSwitch"
+      //     name="customSwitch"
+      //     label="Join this Event"
+      //     onClick={() => this.joinEventSwitch()}
+      //   />
+      // );
+      joinEventSwitch = (
+        <FormControlLabel
+          control={
+            <Switch
+              checked={this.state.joinEve}
+              onClick={() => this.joinEventSwitch()}
+              name="joinEventSwitch"
+              color="primary"
+            />
+          }
+          label={<b>Join Event</b>}
+        />
+      );
+    }
+
     //Orgs associated with this Event
     let orgs = "";
     if (Object.keys(event.orgNames).length > 0) {
@@ -387,7 +457,7 @@ class EventEdit extends Component {
                 getOptionLabel={(option) => option.orgname}
                 renderOption={(option) => (
                   <React.Fragment>
-                    <span>{option.OrgID}</span>
+                    {/* <span>{option.OrgID}</span> */}
                     {option.orgname}
                   </React.Fragment>
                 )}
@@ -404,6 +474,7 @@ class EventEdit extends Component {
               />
             </div>
             <React.Fragment>{orgs}</React.Fragment>
+            <React.Fragment>{joinEventSwitch}</React.Fragment>
             <FormGroup>
               <Button color="primary" type="submit">
                 Save Event
@@ -421,4 +492,4 @@ class EventEdit extends Component {
   }
 }
 
-export default withRouter(EventEdit);
+export default withCookies(EventEdit);

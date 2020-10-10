@@ -2,6 +2,44 @@
   text-align: center;
 }
 
+/* Login Page */
+.cover-image {
+  background-image: url("/login-cover.jpg");
+  height: 100vh;
+
+  background-position: center;
+  background-repeat: no-repeat;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+.ms-logo {
+  max-width: 300px;
+  margin-left: -1.5rem;
+}
+
+.login-title {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.mmSubTitle {
+  font-weight: lighter;
+}
+
+.login-box {
+  position: absolute;
+  top: 30%;
+  left: 20%;
+  padding: 40px;
+  background-color: #333454;
+  border-radius: 0.25rem;
+  color: whitesmoke;
+}
+
+/* Login Page End */
 .logo {
   height: 60px;
   margin-left: 25px;
@@ -69,6 +107,17 @@
   margin-right: 30px;
 }
 
+.user-name-text {
+  font-weight: 600;
+  color: whitesmoke;
+  margin-left: 0.25rem;
+}
+.user-icon {
+  color: whitesmoke;
+}
+.user-nav-item {
+  margin-left: 3rem;
+}
 /*Form Fields*/
 .required {
   color: red;

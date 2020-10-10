@@ -22,7 +22,7 @@ class App extends Component {
             <Route path="/" exact={true} component={Home} />
             <Route path="/organizations" exact={true} component={AllOrgsList} />
             <Route path="/events" exact={true} component={EventList} />
-            <Route path="/appointments/1" exact={true} component={MyEvents} />
+            <Route path="/myoutreach" exact={true} component={MyEvents} />
             <Route path="/organizations/:id" component={OrgEdit} />
             <Route path="/organization/read/:id" component={OrgRead} />
             <Route path="/contact/:id" component={ContactEdit} />

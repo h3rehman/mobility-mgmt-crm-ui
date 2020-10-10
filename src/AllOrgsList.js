@@ -2,17 +2,28 @@ import React, { Component } from "react";
 import { Button, ButtonGroup, Container, Table } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
+import { instanceOf } from "prop-types";
+import { withCookies, Cookies } from "react-cookie";
 
 class AllOrgsList extends Component {
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired,
+  };
+
   constructor(props) {
     super(props);
-    this.state = { orgs: [], isLoading: true };
+    const { cookies } = props;
+    this.state = {
+      orgs: [],
+      csrfToken: cookies.get("XSRF-TOKEN"),
+      isLoading: true,
+    };
   }
 
   componentDidMount() {
     this.setState({ isLoading: true });
 
-    fetch("/api/organizations")
+    fetch("/api/organizations", { credentials: "include" })
       .then((response) => response.json())
       .then((data) => this.setState({ orgs: data, isLoading: false }));
   }
@@ -79,4 +90,4 @@ class AllOrgsList extends Component {
   }
 }
 
-export default AllOrgsList;
+export default withCookies(AllOrgsList);
