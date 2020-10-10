@@ -12,8 +12,14 @@ import {
   Alert,
 } from "reactstrap";
 import AppNavbar from "./AppNavbar";
+import { instanceOf } from "prop-types";
+import { withCookies, Cookies } from "react-cookie";
 
 class OrgEdit extends Component {
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired,
+  };
+
   emptyItem = {
     orgId: "",
     orgname: "",
@@ -38,6 +44,7 @@ class OrgEdit extends Component {
 
   constructor(props) {
     super(props);
+    const { cookies } = props;
     this.state = {
       item: this.emptyItem,
       conObj: this.emptyContact,
@@ -45,6 +52,7 @@ class OrgEdit extends Component {
       addContactButton: "none",
       orgUpdateAlert: false,
       newOrgAlert: false,
+      csrfToken: cookies.get("XSRF-TOKEN"),
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -58,7 +66,9 @@ class OrgEdit extends Component {
   async componentDidMount() {
     if (this.props.match.params.id !== "new") {
       const org = await (
-        await fetch(`/api/organizations/${this.props.match.params.id}`)
+        await fetch(`/api/organizations/${this.props.match.params.id}`, {
+          credentials: "include",
+        })
       ).json();
       this.setState({ item: org });
       this.setState({ addContactButton: "block" });
@@ -93,9 +103,11 @@ class OrgEdit extends Component {
     await fetch(`/api/orgContact/${item.orgId}`, {
       method: "POST",
       headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify(conObj),
     });
     window.location.href = "/organizations/" + item.orgId;
@@ -110,9 +122,11 @@ class OrgEdit extends Component {
     await fetch(`/api/organization/${item.countyName}`, {
       method: item.orgId ? "PUT" : "POST",
       headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify(item),
     }).then((response) => {
       headerEntries = response.headers.entries();
@@ -160,9 +174,11 @@ class OrgEdit extends Component {
     await fetch(`/api/orgContact/${orgId}/${contactId}`, {
       method: "DELETE",
       headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
+      credentials: "include",
     }).then(() => {
       let updatedContacts = [...this.state.item.orgContacts].filter(
         (i) => i.contactId !== contactId
@@ -661,4 +677,4 @@ class OrgEdit extends Component {
   }
 }
 
-export default withRouter(OrgEdit);
+export default withCookies(OrgEdit);
