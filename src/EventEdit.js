@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link, withRouter } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Button,
   Container,
@@ -10,11 +10,12 @@ import {
   ButtonGroup,
   Table,
   Alert,
-  CustomInput,
 } from "reactstrap";
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import { Switch, FormControlLabel } from "@material-ui/core";
+import DateFnsUtils from "@date-io/date-fns";
+import { DateTimePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
@@ -59,6 +60,8 @@ class EventEdit extends Component {
     this.handleSelect = this.handleSelect.bind(this);
     this.removeOrg = this.removeOrg.bind(this);
     this.joinEventSwitch = this.joinEventSwitch.bind(this);
+    this.handleStartDateChange = this.handleStartDateChange.bind(this);
+    this.handleEndDateChange = this.handleEndDateChange.bind(this);
   }
 
   async componentDidMount() {
@@ -121,6 +124,70 @@ class EventEdit extends Component {
   handleSelect(e, newValue) {
     let id = newValue ? newValue.OrgID : "-1";
     this.setState({ orgId: id });
+  }
+
+  handleStartDateChange(dateTime) {
+    let dt = new Date(dateTime);
+    let formattedDateTime = null;
+    if (dateTime !== null) {
+      let month =
+        parseInt(dt.getMonth() + 1) > 9
+          ? dt.getMonth() + 1
+          : "0" + (dt.getMonth() + 1);
+      let date = parseInt(dt.getDate()) > 9 ? dt.getDate() : "0" + dt.getDate();
+      let hours =
+        parseInt(dt.getHours()) > 9 ? dt.getHours() : "0" + dt.getHours();
+      let minutes =
+        parseInt(dt.getMinutes()) > 9 ? dt.getMinutes() : "0" + dt.getMinutes();
+      formattedDateTime =
+        dt.getFullYear() +
+        "-" +
+        month +
+        "-" +
+        date +
+        "T" +
+        hours +
+        ":" +
+        minutes +
+        ":00";
+    }
+    console.log(formattedDateTime);
+    let event = { ...this.state.event };
+    event.startDateTime = formattedDateTime;
+    this.setState({ event });
+    console.log("Start Date time updated: " + event.startDateTime);
+  }
+
+  handleEndDateChange(dateTime) {
+    let dt = new Date(dateTime);
+    let formattedDateTime = null;
+    if (dateTime !== null) {
+      let month =
+        parseInt(dt.getMonth() + 1) > 9
+          ? dt.getMonth() + 1
+          : "0" + (dt.getMonth() + 1);
+      let date = parseInt(dt.getDate()) > 9 ? dt.getDate() : "0" + dt.getDate();
+      let hours =
+        parseInt(dt.getHours()) > 9 ? dt.getHours() : "0" + dt.getHours();
+      let minutes =
+        parseInt(dt.getMinutes()) > 9 ? dt.getMinutes() : "0" + dt.getMinutes();
+      formattedDateTime =
+        dt.getFullYear() +
+        "-" +
+        month +
+        "-" +
+        date +
+        "T" +
+        hours +
+        ":" +
+        minutes +
+        ":00";
+    }
+    console.log(formattedDateTime);
+    let event = { ...this.state.event };
+    event.endDateTime = formattedDateTime;
+    this.setState({ event });
+    console.log("End Date time updated: " + event.endDateTime);
   }
 
   handleChange(e) {
@@ -194,21 +261,11 @@ class EventEdit extends Component {
     const dismissEventUpdateAlert = () =>
       this.setState({ eventUpdateAlert: false });
     const dismissNewEveAlert = () => this.setState({ newEventAlert: false });
-
     const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
 
     let joinEventSwitch = "";
 
     if (!event.eventId) {
-      // joinEventSwitch = (
-      //   <CustomInput
-      //     type="switch"
-      //     id="joinEveSwitch"
-      //     name="customSwitch"
-      //     label="Join this Event"
-      //     onClick={() => this.joinEventSwitch()}
-      //   />
-      // );
       joinEventSwitch = (
         <FormControlLabel
           control={
@@ -395,28 +452,25 @@ class EventEdit extends Component {
               </FormGroup>
             </div>
             <div className="row">
-              <FormGroup className="col-md-3 mb-3">
-                <Label for="startDate">Start Date</Label>
-                <Input
-                  type="date"
-                  name="startDate"
-                  id="startDate"
-                  value={event.startDateTime || ""}
-                  onChange={this.handleChange}
-                  autoComplete="startDate"
-                ></Input>
-              </FormGroup>
-              <FormGroup className="col-md-3 mb-3">
-                <Label for="endDate">End Date</Label>
-                <Input
-                  type="date"
-                  name="endDate"
-                  id="endDate"
-                  value={event.endDateTime || ""}
-                  onChange={this.handleChange}
-                  autoComplete="endDate"
-                ></Input>
-              </FormGroup>
+              <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                <DateTimePicker
+                  clearable
+                  label="Start Date/Time"
+                  format="MM-dd-yyyy hh:mm a"
+                  inputVariant="outlined"
+                  value={event.startDateTime}
+                  onChange={this.handleStartDateChange}
+                />
+                &nbsp;
+                <DateTimePicker
+                  clearable
+                  label="End Date/Time"
+                  format="MM-dd-yyyy hh:mm a"
+                  inputVariant="outlined"
+                  value={event.endDateTime}
+                  onChange={this.handleEndDateChange}
+                />
+              </MuiPickersUtilsProvider>
             </div>
             <div className="row">
               <FormGroup className="col-md-2 mb-3">
