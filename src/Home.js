@@ -3,6 +3,7 @@ import { withCookies } from "react-cookie";
 import "./App.css";
 import AppNavbar from "./AppNavbar";
 import { Jumbotron, Button, Container } from "reactstrap";
+import localConfig from "./localConfig.json";
 
 class Home extends Component {
   state = {
@@ -45,9 +46,10 @@ class Home extends Component {
   login() {
     let port = window.location.port ? ":" + window.location.port : "";
     if (port === ":443" || port === "" || port === ":3000") {
-      port = ":9000";
+      port = localConfig.SERVICE.PORT;
     }
-    window.location.href = "//" + window.location.hostname + port + "/login";
+    window.location.href =
+      "//" + localConfig.SERVICE.URL + ":" + port + "/login";
   }
 
   render() {

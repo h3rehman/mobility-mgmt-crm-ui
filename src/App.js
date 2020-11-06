@@ -10,7 +10,6 @@ import OrgEdit from "./OrgEdit";
 import OrgRead from "./OrgRead";
 import ContactEdit from "./ContactEdit";
 import EventEdit from "./EventEdit";
-import TestMaterialUI from "./TestMaterialUI";
 import EventRead from "./EventRead";
 
 class App extends Component {
@@ -28,11 +27,6 @@ class App extends Component {
             <Route path="/contact/:id" component={ContactEdit} />
             <Route path="/events/:id" component={EventEdit} />
             <Route path="/event/read/:id" component={EventRead} />
-            <Route
-              path="/test-material"
-              exact={true}
-              component={TestMaterialUI}
-            />
           </Switch>
         </Router>
       </CookiesProvider>
