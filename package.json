@@ -21,12 +21,14 @@
     "react-scripts": "3.4.1",
     "reactstrap": "6.5.0"
   },
+  "type": "module",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "proxy": "http://localhost:9000",
   "eslintConfig": {
     "extends": "react-app"
   },
