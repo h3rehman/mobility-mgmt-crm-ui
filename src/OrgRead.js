@@ -12,6 +12,7 @@ import {
   Alert,
 } from "reactstrap";
 import EditableLabel from "react-inline-editing";
+import DeleteIcon from "@material-ui/icons/Delete";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
@@ -55,6 +56,7 @@ class OrgRead extends Component {
       noteObj: this.emptyNote,
       noteFormCheck: false,
       emptyNoteAlert: false,
+      newNoteAlert: false,
       noteUpdateAlert: false,
       newNoteButton: "none",
       noteEditMode: false,
@@ -64,6 +66,7 @@ class OrgRead extends Component {
     this.handleNoteChange = this.handleNoteChange.bind(this);
     this._handleFocusOut = this._handleFocusOut.bind(this);
     this.handleNoteEditClick = this.handleNoteEditClick.bind(this);
+    this.deleteNote = this.deleteNote.bind(this);
   }
 
   async componentDidMount() {
@@ -114,6 +117,10 @@ class OrgRead extends Component {
         }
         let updatedOrgNotes = [...this.state.orgNotes];
         updatedOrgNotes.push(noteObj);
+        this.setState({ newNoteAlert: true });
+        window.setTimeout(() => {
+          this.setState({ newNoteAlert: false });
+        }, 4000);
         this.setState({ orgNotes: updatedOrgNotes });
         this.setState({ noteFormCheck: false, noteObj: this.emptyNote });
       });
@@ -168,13 +175,32 @@ class OrgRead extends Component {
     });
   }
 
+  async deleteNote(noteId) {
+    await fetch(`/api/deleteNote/${noteId}`, {
+      method: "DELETE",
+      headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    }).then(() => {
+      let updatedOrgNotes = [...this.state.orgNotes].filter(
+        (i) => i.noteId !== noteId
+      );
+      this.setState({ orgNotes: updatedOrgNotes });
+    });
+  }
+
   render() {
     const { item } = this.state;
     const { orgNotes } = this.state;
     const { emptyNoteAlert } = this.state;
+    const { newNoteAlert } = this.state;
     const { noteUpdateAlert } = this.state;
     const dismissEmtpyNoteAlert = () =>
       this.setState({ emptyNoteAlert: false });
+    const dismissNewNoteAlert = () => this.setState({ newNoteAlert: false });
     const dismissNoteUpdateAlert = () =>
       this.setState({ noteUpdateAlert: false });
     const { noteEditMode } = this.state;
@@ -422,8 +448,8 @@ class OrgRead extends Component {
                 text={note.noteEntry}
                 labelClassName={`note-label-${note.noteId}`}
                 inputClassName={`note-class-${note.noteId}`}
-                inputWidth="200px"
-                inputHeight="25px"
+                inputWidth="500px"
+                inputHeight="30px"
                 inputMaxLength="100"
                 labelFontWeight="normal"
                 inputFontWeight="bold"
@@ -431,10 +457,14 @@ class OrgRead extends Component {
                 onFocusOut={this._handleFocusOut}
               />
             </td>
-            {/* <td>{contact.lastName}</td>
-            <td>{contact.title}</td>
-            <td>{contact.email}</td>
-            <td>{contact.phone}</td> */}
+            <td>{note.createDate}</td>
+            <td>
+              {note.createdByFirstName} {note.createdByLastName}
+            </td>
+            <td>{note.lastModifiedDate}</td>
+            <td>
+              {note.lastModifiedByFirstName} {note.lastModifiedByLastName}
+            </td>
             <td>
               <ButtonGroup>
                 <Button
@@ -449,7 +479,19 @@ class OrgRead extends Component {
                   onClick={() => this.updateNote(note.noteId)}
                 >
                   Update
-                </Button>
+                </Button>{" "}
+                <DeleteIcon
+                  className="delete-icon"
+                  color="action"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "This will permanently delete this note. Are you sure?"
+                      )
+                    )
+                      this.deleteNote(note.noteId);
+                  }}
+                />
               </ButtonGroup>
             </td>
           </tr>
@@ -461,12 +503,14 @@ class OrgRead extends Component {
           <Table responsive className="small" bordered hover>
             <thead>
               <tr>
-                <th width="5%">Comments</th>
-                {/* <th width="5%">Last Name</th>
-                <th width="5%">Title</th>
-                <th width="5%">Email</th>
-                <th width="5%">Phone</th>
-                <th width="5%">Action</th> */}
+                <th width="44%">
+                  Comments <i>(Click to Edit)</i>
+                </th>
+                <th width="5%">Date Created</th>
+                <th width="13%">Created by</th>
+                <th width="5%">Last modified</th>
+                <th width="13%">Last modified by</th>
+                <th width="20%">Action</th>
               </tr>
             </thead>
             <tbody>{noteList}</tbody>
@@ -539,6 +583,15 @@ class OrgRead extends Component {
               <div>{pastEvents}</div>
             </p>
           </React.Fragment>
+          <div>
+            <Alert
+              color="success"
+              isOpen={newNoteAlert}
+              toggle={dismissNewNoteAlert}
+            >
+              A new note is created.
+            </Alert>
+          </div>
           <div>
             <Alert
               color="warning"
