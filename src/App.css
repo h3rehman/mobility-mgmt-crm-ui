@@ -142,3 +142,7 @@
 .fieldSpace {
   padding-left: 15px;
 }
+/* Delete icon */
+.delete-icon {
+  margin-left: 1rem;
+}

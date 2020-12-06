@@ -134,7 +134,6 @@ class OrgEdit extends Component {
 
     if (item.orgId) {
       //For PUT Calls
-      console.log("Alert condition called");
       this.setState({ orgUpdateAlert: true });
       window.scrollTo(0, 0);
       window.setTimeout(() => {
