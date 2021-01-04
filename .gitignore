@@ -5,6 +5,10 @@
 /.pnp
 .pnp.js
 
+# configs and logs
+*.json
+*.log
+
 # testing
 /coverage
 

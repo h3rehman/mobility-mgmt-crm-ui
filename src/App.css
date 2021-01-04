@@ -87,6 +87,19 @@
   margin-top: 20px;
 }
 
+/* Fonts */
+.small-font {
+  font-size: smaller;
+}
+
+.larger-font {
+  font-size: larger;
+}
+
+.mono-font {
+  font-family: monospace;
+}
+
 /*Navbar*/
 .navbar {
   background-color: #286eac;
@@ -131,7 +144,7 @@
 }
 
 .paraSpace {
-  padding-bottom: 5px;
+  padding-bottom: 15px;
 }
 
 .field {
