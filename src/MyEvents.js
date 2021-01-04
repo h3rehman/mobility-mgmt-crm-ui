@@ -70,12 +70,14 @@ class MyEvents extends Component {
     return (
       <div>
         <AppNavbar />
-        <Container fluid>
+        <Container>
           <div className="float-right">
             <Button color="success" tag={Link} to="/events/new">
               Add Event
             </Button>
           </div>
+        </Container>
+        <Container>
           <h4>My Outreach Schedule</h4>
           <Table className="mt-4">
             <thead>

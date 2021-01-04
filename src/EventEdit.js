@@ -104,21 +104,14 @@ class EventEdit extends Component {
   }
 
   joinEventSwitch() {
-    console.log("Join Event Switch called: " + this.state.joinEve);
     if (this.state.joinEve === true) {
       const setSwitch = false;
       this.setState({ joinEve: setSwitch });
-      console.log("Set to: " + this.state.joinEve);
-      console.log("False called");
     } else {
       const setSwitch = true;
       this.setState({ joinEve: setSwitch });
-      console.log("Set to: " + this.state.joinEve);
-      console.log("True called");
       const { joinEve } = this.state;
-      console.log(joinEve);
     }
-    console.log("Switch set to: " + this.state.joinEve);
   }
 
   handleSelect(e, newValue) {
@@ -151,11 +144,9 @@ class EventEdit extends Component {
         minutes +
         ":00";
     }
-    console.log(formattedDateTime);
     let event = { ...this.state.event };
     event.startDateTime = formattedDateTime;
     this.setState({ event });
-    console.log("Start Date time updated: " + event.startDateTime);
   }
 
   handleEndDateChange(dateTime) {
@@ -183,11 +174,9 @@ class EventEdit extends Component {
         minutes +
         ":00";
     }
-    console.log(formattedDateTime);
     let event = { ...this.state.event };
     event.endDateTime = formattedDateTime;
     this.setState({ event });
-    console.log("End Date time updated: " + event.endDateTime);
   }
 
   handleChange(e) {
@@ -195,7 +184,6 @@ class EventEdit extends Component {
     const value = target.value;
     const name = target.name;
     let event = { ...this.state.event };
-    console.log("Handle Change called: " + value + " " + name);
     event[name] = value;
     this.setState({ event });
   }
@@ -205,7 +193,6 @@ class EventEdit extends Component {
     const { event } = this.state;
     const { orgId } = this.state;
     const { joinEve } = this.state;
-    console.log("handleSubmit Called!");
     let headerEntries = "";
     let postId = "";
 
@@ -226,7 +213,6 @@ class EventEdit extends Component {
 
     if (event.eventId) {
       //For PUT Calls
-      console.log("Alert condition called");
       this.setState({ eventUpdateAlert: true });
       window.scrollTo(0, 0);
       window.setTimeout(() => {
@@ -240,7 +226,6 @@ class EventEdit extends Component {
       window.scrollTo(0, 0);
       await new Promise((r) => setTimeout(r, 3000));
       for (var pair of headerEntries) {
-        console.log(pair[0] + ": " + pair[1]);
         if (pair[0] === "location") {
           let loc = pair[1].toString();
           postId = loc.split("/").pop();

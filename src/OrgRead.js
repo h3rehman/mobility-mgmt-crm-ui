@@ -1,5 +1,5 @@
-import React, { Component, useState } from "react";
-import { Link, withRouter } from "react-router-dom";
+import React, { Component } from "react";
+import { Link } from "react-router-dom";
 import {
   Button,
   Container,
@@ -38,6 +38,8 @@ class OrgRead extends Component {
   emptyNote = {
     noteId: null,
     noteEntry: "",
+    createDate: null,
+    lastModifiedDate: null,
   };
 
   updatedNote = {
@@ -58,7 +60,6 @@ class OrgRead extends Component {
       emptyNoteAlert: false,
       newNoteAlert: false,
       noteUpdateAlert: false,
-      newNoteButton: "none",
       noteEditMode: false,
       csrfToken: cookies.get("XSRF-TOKEN"),
     };
@@ -81,7 +82,6 @@ class OrgRead extends Component {
       })
     ).json();
     this.setState({ item: org, orgNotes: notes });
-    this.setState({ newNoteButton: "block" });
   }
 
   async handleNoteSubmit(event) {
@@ -112,6 +112,8 @@ class OrgRead extends Component {
             let loc = pair[1].toString();
             let newNoteId = loc.split("/").pop();
             noteObj.noteId = newNoteId;
+            noteObj.createDate = new Date();
+            noteObj.lastModifiedDate = new Date();
             break;
           }
         }
@@ -142,11 +144,9 @@ class OrgRead extends Component {
 
   _handleFocusOut(text) {
     this.updatedNote.noteEntry = text;
-    console.log("Focus out called...");
   }
 
   handleNoteEditClick(noteId) {
-    console.log("Note Id: " + noteId);
     this.focusedNoteId = noteId;
     this.setState({ noteEditMode: true });
   }
@@ -204,7 +204,6 @@ class OrgRead extends Component {
     const dismissNoteUpdateAlert = () =>
       this.setState({ noteUpdateAlert: false });
     const { noteEditMode } = this.state;
-    let { newNoteButton } = this.state;
     let { noteFormCheck } = this.state;
 
     const title = <h4>Organization Details</h4>;
@@ -285,7 +284,7 @@ class OrgRead extends Component {
               <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
               <td>{event.startDateTime}</td>
               <td>{event.endDateTime}</td>
-              <td>{event.eventType}</td>
+              <td>{event.eventTypeDesc}</td>
               <td>
                 {event.eventPresenters.map((presenter) => {
                   return presenter;
@@ -348,12 +347,30 @@ class OrgRead extends Component {
         var eventDate = new Date(event.startDateTime);
         if (eventDate < today) {
           eventCounter = eventCounter + 1;
+          let sd = event.startDateTime ? new Date(event.startDateTime) : null;
+          let ed = event.endDateTime ? new Date(event.endDateTime) : null;
           return (
             <tr key={event.eventId}>
               <td style={{ whiteSpace: "nowrap" }}>{event.location}</td>
-              <td>{event.startDateTime}</td>
-              <td>{event.endDateTime}</td>
-              <td>{event.eventType}</td>
+              <td>
+                {sd ? sd.toLocaleDateString() : null}{" "}
+                {sd
+                  ? sd.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : null}
+              </td>
+              <td>
+                {ed ? ed.toLocaleDateString() : null}{" "}
+                {ed
+                  ? ed.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : null}
+              </td>
+              <td>{event.eventTypeDesc}</td>
               <td>
                 {event.eventPresenters.map((presenter) => {
                   return (
@@ -440,6 +457,8 @@ class OrgRead extends Component {
     let notes = null;
     if (orgNotes.length > 0) {
       const noteList = orgNotes.map((note) => {
+        let lmd = new Date(note.lastModifiedDate);
+        let cd = new Date(note.createDate);
         return (
           <tr key={note.noteId}>
             {/* <td style={{ whiteSpace: "nowrap" }}>{note.noteEntry}</td> */}
@@ -457,11 +476,23 @@ class OrgRead extends Component {
                 onFocusOut={this._handleFocusOut}
               />
             </td>
-            <td>{note.createDate}</td>
+            <td>
+              {cd.toLocaleDateString()}{" "}
+              {cd.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </td>
             <td>
               {note.createdByFirstName} {note.createdByLastName}
             </td>
-            <td>{note.lastModifiedDate}</td>
+            <td>
+              {lmd.toLocaleDateString()}{" "}
+              {lmd.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </td>
             <td>
               {note.lastModifiedByFirstName} {note.lastModifiedByLastName}
             </td>
@@ -504,7 +535,8 @@ class OrgRead extends Component {
             <thead>
               <tr>
                 <th width="44%">
-                  Comments <i>(Click to Edit)</i>
+                  Comments{" "}
+                  <span className="mono-font">(Click on note to edit)</span>
                 </th>
                 <th width="5%">Date Created</th>
                 <th width="13%">Created by</th>
