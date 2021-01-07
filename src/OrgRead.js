@@ -61,6 +61,8 @@ class OrgRead extends Component {
       newNoteAlert: false,
       noteUpdateAlert: false,
       noteEditMode: false,
+      callLogsViewCheck: false,
+      callLogList: [],
       csrfToken: cookies.get("XSRF-TOKEN"),
     };
     this.handleNoteSubmit = this.handleNoteSubmit.bind(this);
@@ -68,6 +70,7 @@ class OrgRead extends Component {
     this._handleFocusOut = this._handleFocusOut.bind(this);
     this.handleNoteEditClick = this.handleNoteEditClick.bind(this);
     this.deleteNote = this.deleteNote.bind(this);
+    this.enableCallLogView = this.enableCallLogView.bind(this);
   }
 
   async componentDidMount() {
@@ -152,7 +155,6 @@ class OrgRead extends Component {
   }
 
   async updateNote(noteId) {
-    console.log("Update Note Called: " + this.updatedNote.noteEntry);
     this.updatedNote.noteId = noteId;
     await fetch(`/api/editNote/${noteId}`, {
       method: "PUT",
@@ -192,6 +194,64 @@ class OrgRead extends Component {
     });
   }
 
+  async enableCallLogView() {
+    let callLogListResult = "";
+    const fetchedCallLogList = await (
+      await fetch(`/api/org/callLogNotes/${this.props.match.params.id}`, {
+        credentials: "include",
+      })
+    ).json();
+    if (fetchedCallLogList.length < 1) {
+      callLogListResult = (
+        <span className="mono-font larger-font">
+          No call logs were found...
+        </span>
+      );
+    } else {
+      callLogListResult = fetchedCallLogList.map((note) => {
+        let lmd = new Date(note.lastModifiedDate);
+        let cd = new Date(note.createDate);
+        return (
+          <tr key={note.noteId}>
+            <td style={{ whiteSpace: "nowrap" }}>{note.noteEntry}</td>
+            <td>
+              {cd.toLocaleDateString()}{" "}
+              {cd.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </td>
+            <td>
+              {note.createdByFirstName} {note.createdByLastName}
+            </td>
+            <td>
+              {lmd.toLocaleDateString()}{" "}
+              {lmd.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </td>
+            <td>
+              {note.lastModifiedByFirstName} {note.lastModifiedByLastName}
+            </td>
+            <td>
+              <ButtonGroup>
+                <Button
+                  size="sm"
+                  color="primary"
+                  href={"/callLog/" + note.callId}
+                >
+                  View Log
+                </Button>
+              </ButtonGroup>
+            </td>
+          </tr>
+        );
+      });
+    }
+    this.setState({ callLogList: callLogListResult, callLogsViewCheck: true });
+  }
+
   render() {
     const { item } = this.state;
     const { orgNotes } = this.state;
@@ -205,6 +265,8 @@ class OrgRead extends Component {
       this.setState({ noteUpdateAlert: false });
     const { noteEditMode } = this.state;
     let { noteFormCheck } = this.state;
+    const { callLogsViewCheck } = this.state;
+    const { callLogList } = this.state;
 
     const title = <h4>Organization Details</h4>;
 
@@ -559,6 +621,32 @@ class OrgRead extends Component {
       );
     }
 
+    //Call Logs Table for Org
+    const callLogsView = callLogsViewCheck ? (
+      <div>
+        <h6>Call Log(s) for {item.orgname}</h6>
+        <Table responsive className="small" bordered hover>
+          <thead>
+            <tr>
+              <th width="40%">Comments </th>
+              <th width="13%">Date Created</th>
+              <th width="12%">Created by</th>
+              <th width="13%">Last modified</th>
+              <th width="12%">Last modified by</th>
+              <th width="10%">Action</th>
+            </tr>
+          </thead>
+          <tbody>{callLogList}</tbody>
+        </Table>
+      </div>
+    ) : (
+      <div>
+        <Button size="sm" onClick={() => this.enableCallLogView()}>
+          View Call Logs
+        </Button>
+      </div>
+    );
+
     return (
       <div>
         <AppNavbar />
@@ -646,6 +734,7 @@ class OrgRead extends Component {
             </div>
             <div>{notes}</div>
           </React.Fragment>
+          <div>{callLogsView}</div>
           <p>&nbsp;</p>
           <p>&nbsp;</p>
         </Container>

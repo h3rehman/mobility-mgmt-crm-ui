@@ -65,6 +65,7 @@ class CallLogEdit extends Component {
       orgButton: "none",
       contactButton: "none",
       statusButton: "none",
+      orgStatusTypes: null,
       csrfToken: cookies.get("XSRF-TOKEN"),
     };
     this.handleChange = this.handleChange.bind(this);
@@ -102,8 +103,14 @@ class CallLogEdit extends Component {
       const fetchOrgs = await (
         await fetch(`/api/allorgnames`, { credentials: "include" })
       ).json();
+
+      const fetchedOrgStatusType = await (
+        await fetch(`/api/orgStatusTypes`, { credentials: "include" })
+      ).json();
+
       this.setState({
         allOrgNames: fetchOrgs,
+        orgStatusTypes: fetchedOrgStatusType,
         keepOrg: "block",
         keepStatus: "block",
         keepContact: "block",
@@ -241,7 +248,14 @@ class CallLogEdit extends Component {
   }
 
   async changeStatus() {
-    this.setState({ keepStatus: "block", statusButton: "none" });
+    const fetchedOrgStatusType = await (
+      await fetch(`/api/orgStatusTypes`, { credentials: "include" })
+    ).json();
+    this.setState({
+      orgStatusTypes: fetchedOrgStatusType,
+      keepStatus: "block",
+      statusButton: "none",
+    });
   }
 
   render() {
@@ -249,6 +263,7 @@ class CallLogEdit extends Component {
     const callLog = note.callLog;
     const { allOrgNames } = this.state;
     const { orgContacts } = this.state;
+    const { orgStatusTypes } = this.state;
     const { logUpdateAlert } = this.state;
     const { newLogAlert } = this.state;
     const { noteFormCheck } = this.state;
@@ -392,6 +407,19 @@ class CallLogEdit extends Component {
       noteForm = "";
     }
 
+    //Iterating Status types options
+    let statusOptions = null;
+    if (orgStatusTypes !== null) {
+      statusOptions = orgStatusTypes.map((status) => {
+        return <option id={status.statusId}>{status.statusDesc}</option>;
+      });
+    } else {
+      statusOptions = "";
+    }
+
+    //Set required for Org Status field if new form
+    let statusRequireCheck = callLog.callId ? "required" : null;
+
     return (
       <div>
         <AppNavbar />
@@ -482,7 +510,7 @@ class CallLogEdit extends Component {
                   Org. Status <span className="required">*</span>
                 </Label>
                 <Input
-                  required
+                  {...statusRequireCheck}
                   type="select"
                   name="lastStatus"
                   id="lastStatus"
@@ -490,12 +518,7 @@ class CallLogEdit extends Component {
                   onChange={this.handleChange}
                   autoComplete="lastStatus"
                 >
-                  <option></option>
-                  <option id={2}>Event Scheduled</option>
-                  <option id={3}>Awaiting Response</option>
-                  <option id={5}>Not Interested / Not Appropriate</option>
-                  <option id={6}>Call Back</option>
-                  <option id={7}>Not Contacted yet</option>
+                  {statusOptions}
                 </Input>
               </FormGroup>
             </div>
