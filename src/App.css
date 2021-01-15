@@ -140,11 +140,15 @@
 .detailsBlock {
   margin-left: 1rem;
   margin-top: 2.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0.25rem;
 }
 
 .paraSpace {
   padding-bottom: 15px;
+}
+
+.smallerSpace {
+  padding-bottom: 10px;
 }
 
 .field {

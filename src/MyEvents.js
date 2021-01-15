@@ -40,17 +40,33 @@ class MyEvents extends Component {
     }
 
     const myEvents = events.map((event) => {
+      let cd = new Date(event.startDateTime);
+      let ld = new Date(event.endDateTime);
       return (
         <tr key={event.eventId}>
-          <td style={{ whiteSpace: "nowrap" }}>{event.eventName}</td>
-          <td>
-            {event.location} {event.address}
+          <td className="small-font" style={{ whiteSpace: "nowrap" }}>
+            {event.eventName}
           </td>
-          <td>{event.city}</td>
-          <td>{event.zip}</td>
-          <td>{event.startDateTime}</td>
-          <td>{event.endDateTime}</td>
-          <td>{event.eventType}</td>
+          <td className="small-font">
+            <Link to={"/event/read/" + event.eventId}>{event.location}</Link>
+          </td>
+          <td className="small-font">{event.city}</td>
+          <td className="small-font">{event.zip}</td>
+          <td className="small-font">
+            {cd.toLocaleDateString()}{" "}
+            {cd.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </td>
+          <td className="small-font">
+            {ld.toLocaleDateString()}{" "}
+            {ld.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </td>
+          <td className="small-font">{event.eventTypeDesc}</td>
           <td>
             <ButtonGroup>
               <Button
@@ -83,13 +99,13 @@ class MyEvents extends Component {
             <thead>
               <tr>
                 <th width="10%">Event Name</th>
-                <th width="15%">Location</th>
+                <th width="18%">Location</th>
                 <th width="10%">City</th>
-                <th width="10%">Zip</th>
-                <th width="10%">Start Time</th>
-                <th width="10%">End Time</th>
+                <th width="7%">Zip</th>
+                <th width="13%">Start Time</th>
+                <th width="13%">End Time</th>
                 <th width="10%">Type</th>
-                <th width="10%">Action</th>
+                <th width="5%">Action</th>
               </tr>
             </thead>
             <tbody>{myEvents}</tbody>

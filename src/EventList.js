@@ -40,6 +40,8 @@ class EventList extends Component {
     }
 
     const eventList = events.map((event) => {
+      let cd = new Date(event.startDateTime);
+      let ld = new Date(event.endDateTime);
       return (
         <tr key={event.eventId}>
           <td style={{ whiteSpace: "nowrap" }}>
@@ -48,16 +50,28 @@ class EventList extends Component {
           <td>
             {event.eventPresenters.map((presenter) => {
               return (
-                <div>
+                <div className="small-font">
                   {presenter} <br></br>
                 </div>
               );
             })}
           </td>
-          <td>{event.city}</td>
-          <td>{event.startDateTime}</td>
-          <td>{event.endDateTime}</td>
-          <td>{event.eventTypeDesc}</td>
+          <td className="small-font">{event.city}</td>
+          <td className="small-font">
+            {cd.toLocaleDateString()}{" "}
+            {cd.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </td>
+          <td className="small-font">
+            {ld.toLocaleDateString()}{" "}
+            {ld.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </td>
+          <td className="small-font">{event.eventTypeDesc}</td>
           <td>
             <ButtonGroup>
               <Button
@@ -92,10 +106,10 @@ class EventList extends Component {
                 <th width="15%">Location</th>
                 <th width="10%">Presenter(s)</th>
                 <th width="10%">City</th>
-                <th width="10%">Start Time</th>
-                <th width="10%">End Time</th>
+                <th width="12%">Start Time</th>
+                <th width="12%">End Time</th>
                 <th width="10%">Type</th>
-                <th width="10%">Action</th>
+                <th width="5%">Action</th>
               </tr>
             </thead>
             <tbody>{eventList}</tbody>

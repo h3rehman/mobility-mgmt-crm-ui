@@ -49,7 +49,7 @@ class Home extends Component {
       port = localConfig.SERVICE.PORT;
     }
     window.location.href =
-      "//" + localConfig.SERVICE.URL + ":" + port + "/login";
+      "http://" + localConfig.SERVICE.URL + ":" + port + "/login";
   }
 
   render() {
