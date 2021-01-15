@@ -9,6 +9,7 @@ import {
   Label,
   ButtonGroup,
   Table,
+  CustomInput,
   Alert,
 } from "reactstrap";
 import TextField from "@material-ui/core/TextField";
@@ -39,7 +40,6 @@ class EventEdit extends Component {
     audienceCount: "",
     eventTypeDesc: "",
     eventPresenters: [],
-    eventAudienceType: [],
     orgNames: {},
   };
 
@@ -50,8 +50,11 @@ class EventEdit extends Component {
       event: this.emptyEvent,
       orgId: "-1",
       allOrgNames: [],
+      eventAudienceTypes: [],
+      allAudienceTypes: null,
       eventUpdateAlert: false,
       newEventAlert: false,
+      audienceTypeDeleteAlert: false,
       joinEve: false,
       csrfToken: cookies.get("XSRF-TOKEN"),
     };
@@ -59,7 +62,9 @@ class EventEdit extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleSelect = this.handleSelect.bind(this);
     this.removeOrg = this.removeOrg.bind(this);
+    this.deleteAudienceType = this.deleteAudienceType.bind(this);
     this.joinEventSwitch = this.joinEventSwitch.bind(this);
+    this.handleAudienceTypes = this.handleAudienceTypes.bind(this);
     this.handleStartDateChange = this.handleStartDateChange.bind(this);
     this.handleEndDateChange = this.handleEndDateChange.bind(this);
   }
@@ -71,13 +76,21 @@ class EventEdit extends Component {
           credentials: "include",
         })
       ).json();
+
       this.setState({ event: exEvent });
     }
+    const eveId =
+      this.props.match.params.id === "new" ? -1 : this.props.match.params.id;
+    const audiTypes = await (
+      await fetch(`/api/allAudienceWithTypeExist/${eveId}`, {
+        credentials: "include",
+      })
+    ).json();
     //load all Org names into this constant
     const fetchOrgs = await (
       await fetch(`/api/allorgnames`, { credentials: "include" })
     ).json();
-    this.setState({ allOrgNames: fetchOrgs });
+    this.setState({ allOrgNames: fetchOrgs, allAudienceTypes: audiTypes });
   }
 
   async removeOrg(eventId, orgId) {
@@ -103,6 +116,25 @@ class EventEdit extends Component {
     });
   }
 
+  async deleteAudienceType(id) {
+    const { event } = this.state;
+    let eventId = event.eventId;
+    await fetch(`/api/deleteAudienceType/${eventId}/${id}`, {
+      method: "DELETE",
+      headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    }).then(() => {
+      this.setState({ audienceTypeDeleteAlert: true });
+      window.setTimeout(() => {
+        this.setState({ audienceTypeDeleteAlert: false });
+      }, 2000);
+    });
+  }
+
   joinEventSwitch() {
     if (this.state.joinEve === true) {
       const setSwitch = false;
@@ -110,9 +142,29 @@ class EventEdit extends Component {
     } else {
       const setSwitch = true;
       this.setState({ joinEve: setSwitch });
-      const { joinEve } = this.state;
     }
   }
+
+  handleAudienceTypes = (id) => (e) => {
+    console.log(e.target.checked);
+    console.log(id);
+
+    let audTypesArray = [...this.state.allAudienceTypes];
+    const index = audTypesArray.findIndex((x) => x.audiencetypeId === id);
+    audTypesArray[index].typeExist = e.target.checked;
+    this.setState({ allAudienceTypes: audTypesArray });
+
+    let { eventAudienceTypes } = this.state;
+    if (e.target.checked === true) {
+      eventAudienceTypes.push(id);
+    } else {
+      eventAudienceTypes = eventAudienceTypes.filter((x) => x !== id);
+      this.deleteAudienceType(id);
+      console.log("Audience Deleted: " + id);
+    }
+    console.log("Updated: " + eventAudienceTypes);
+    this.setState({ eventAudienceTypes });
+  };
 
   handleSelect(e, newValue) {
     let id = newValue ? newValue.OrgID : "-1";
@@ -193,21 +245,33 @@ class EventEdit extends Component {
     const { event } = this.state;
     const { orgId } = this.state;
     const { joinEve } = this.state;
+    const { eventAudienceTypes } = this.state;
     let headerEntries = "";
     let postId = "";
 
-    event.eventPresenters = null; //making it null before the PUT call, creating a deserialization error in Jackson otherwise
+    let audTypesQuery = eventAudienceTypes
+      .map((type) => {
+        return "audType=" + type;
+      })
+      .join("&");
 
-    await fetch(`/api/event/${event.eventTypeDesc}/${orgId}/${joinEve}`, {
-      method: event.eventId ? "PUT" : "POST",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(event),
-    }).then((response) => {
+    console.log("types query: " + audTypesQuery);
+
+    event.eventPresenters = null; //making it null before the PUT call, creating a deserialization error in Jackson otherwise
+    event.eventaudienceType = null;
+    await fetch(
+      `/api/event/${event.eventTypeDesc}/${orgId}/${joinEve}?${audTypesQuery}`,
+      {
+        method: event.eventId ? "PUT" : "POST",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(event),
+      }
+    ).then((response) => {
       headerEntries = response.headers.entries();
     });
 
@@ -219,7 +283,7 @@ class EventEdit extends Component {
         this.setState({ eventUpdateAlert: false });
       }, 1000);
       await new Promise((r) => setTimeout(r, 1000));
-      window.location.href = "/events/" + event.eventId;
+      window.location.href = "/event/read/" + event.eventId;
     } else {
       //For POST Calls
       this.setState({ newEventAlert: true });
@@ -240,12 +304,16 @@ class EventEdit extends Component {
 
   render() {
     const { event } = this.state;
+    const { allAudienceTypes } = this.state;
     const { allOrgNames } = this.state;
     const { eventUpdateAlert } = this.state;
     const { newEventAlert } = this.state;
+    const { audienceTypeDeleteAlert } = this.state;
     const dismissEventUpdateAlert = () =>
       this.setState({ eventUpdateAlert: false });
     const dismissNewEveAlert = () => this.setState({ newEventAlert: false });
+    const dismissAudienceTypeDeleteAlert = () =>
+      this.setState({ audienceTypeDeleteAlert: false });
     const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
 
     let joinEventSwitch = "";
@@ -331,6 +399,25 @@ class EventEdit extends Component {
       );
     } else {
       orgs = <p>&nbsp;</p>;
+    }
+
+    let audienceCheckBoxes = null;
+
+    if (allAudienceTypes !== null) {
+      audienceCheckBoxes = allAudienceTypes.map((audType) => {
+        return (
+          <CustomInput
+            key={audType.audiencetypeId}
+            checked={audType.typeExist}
+            type="checkbox"
+            id={audType.audiencetypeId}
+            label={audType.audienceDesc}
+            onChange={this.handleAudienceTypes(audType.audiencetypeId)}
+          />
+        );
+      });
+    } else {
+      audienceCheckBoxes = <b>Error occurred in retrieving audience types</b>;
     }
 
     return (
@@ -488,6 +575,21 @@ class EventEdit extends Component {
                   <option>Virtual Presentation</option>
                 </Input>
               </FormGroup>
+            </div>
+            <div>
+              <div>
+                <div className="smallerSpace larger-font">Audience Types</div>
+                <Alert
+                  color="info"
+                  isOpen={audienceTypeDeleteAlert}
+                  toggle={dismissAudienceTypeDeleteAlert}
+                >
+                  Audience Type has been removed!
+                </Alert>
+              </div>
+              <div>
+                <FormGroup>{audienceCheckBoxes}</FormGroup>
+              </div>
             </div>
             <div className="row">
               <Autocomplete

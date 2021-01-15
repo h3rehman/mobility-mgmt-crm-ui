@@ -24,7 +24,7 @@ class EventRead extends Component {
     audienceCount: "",
     eventTypeDesc: "",
     eventPresenters: [],
-    eventAudienceType: [],
+    eventaudienceType: [],
     orgNames: {},
   };
 
@@ -90,6 +90,20 @@ class EventRead extends Component {
   render() {
     const { event } = this.state;
     const title = <h3>Event Details</h3>;
+
+    let cd = new Date(event.startDateTime);
+    let ld = new Date(event.endDateTime);
+
+    let eventAudience = null;
+    if (event.eventaudienceType.length > 0) {
+      const audTypes = event.eventaudienceType.map((audType) => {
+        return <li>{audType}</li>;
+      });
+      eventAudience = <ul>{audTypes}</ul>;
+    } else {
+      eventAudience = "No audience type specified for this event.";
+    }
+
     //Orgs associated with this event
     let orgs = "";
     if (Object.keys(event.orgNames).length > 0) {
@@ -214,11 +228,19 @@ class EventRead extends Component {
             <div className="row paraSpace">
               <div>
                 <span className="field">Start Date/Time:</span>
-                {event.startDateTime}
+                {cd.toLocaleDateString()}{" "}
+                {cd.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
               <div>
                 <span className="field fieldSpace">End Date/Time:</span>
-                {event.endDateTime}
+                {ld.toLocaleDateString()}{" "}
+                {ld.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
             </div>
             <div className="row paraSpace">
@@ -229,6 +251,12 @@ class EventRead extends Component {
               <div>
                 <span className="field fieldSpace">Event type:</span>
                 {event.eventTypeDesc}
+              </div>
+            </div>
+            <div className="row paraSpace">
+              <div>
+                <span className="field">Audience Type(s):</span>
+                {eventAudience}
               </div>
             </div>
           </div>
