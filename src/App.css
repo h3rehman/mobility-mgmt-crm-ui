@@ -82,6 +82,15 @@
   }
 }
 
+.pagination {
+  justify-content: center;
+}
+
+.pageSize-dropDown {
+  float: right;
+  margin-top: -3.25rem;
+  margin-right: 2rem !important;
+}
 .container,
 .container-fluid {
   margin-top: 20px;
@@ -158,6 +167,9 @@
 
 .fieldSpace {
   padding-left: 15px;
+}
+.inline-block {
+  display: inline-block;
 }
 /* Delete icon */
 .delete-icon {
