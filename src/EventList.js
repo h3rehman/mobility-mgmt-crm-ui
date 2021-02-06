@@ -3,6 +3,13 @@ import { Button, ButtonGroup, Container, Table } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
+import FilterListIcon from "@material-ui/icons/FilterList";
+import Accordion from "@material-ui/core/Accordion";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
+import Typography from "@material-ui/core/Typography";
+import { DateRangePicker } from "rsuite";
+import "rsuite/dist/styles/rsuite-default.css";
 import {
   Pagination,
   PaginationItem,
@@ -11,6 +18,7 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
+  CustomInput,
 } from "reactstrap";
 import { withCookies, Cookies } from "react-cookie";
 
@@ -31,21 +39,35 @@ class EventList extends Component {
       sortedField: null,
       sortOrder: null,
       dropdownOpen: false,
+      dateRange: [],
+      fromDate: null,
+      toDate: null,
+      eventTypes: [],
+      eventTypesFiltered: [],
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.pageLink = this.pageLink.bind(this);
     this.pageSizeLink = this.pageSizeLink.bind(this);
     this.getSortedField = this.getSortedField.bind(this);
     this.toggle = this.toggle.bind(this);
+    this.setDateRange = this.setDateRange.bind(this);
+    this.filterEventTypes = this.filterEventTypes.bind(this);
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.setState({ isLoading: true });
     //default pagination (1st page & 10 elements) and sorted by startDateTime
     fetch("/api/events-sorted-default/0/10", { credentials: "include" })
       .then((response) => response.json())
       .then((data) => this.setState({ pagedEvents: data, isLoading: false }))
       .then(() => this.createPageArray());
+
+    const fetchedEventTypes = await (
+      await fetch("/api/all-event-types", {
+        credentials: "include",
+      })
+    ).json();
+    this.setState({ eventTypes: fetchedEventTypes });
   }
 
   toggle() {
@@ -65,11 +87,25 @@ class EventList extends Component {
   }
 
   async pageLink(page) {
-    const { pagedEvents, sortedField, sortOrder } = this.state;
+    const {
+      pagedEvents,
+      sortedField,
+      sortOrder,
+      fromDate,
+      toDate,
+      eventTypesFiltered,
+    } = this.state;
     const pageSize = pagedEvents.pageable.pageSize;
+
+    let eveTypesQuery = eventTypesFiltered
+      .map((type) => {
+        return "eveType=" + type;
+      })
+      .join("&");
+
     const fetchedPage = await (
       await fetch(
-        `/api/events-sorted-custom/${page}/${pageSize}/${sortedField}/${sortOrder}`,
+        `/api/events-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}`,
         {
           credentials: "include",
         }
@@ -79,10 +115,23 @@ class EventList extends Component {
   }
 
   async pageSizeLink(size) {
-    const { sortedField, sortOrder } = this.state;
+    const {
+      sortedField,
+      sortOrder,
+      fromDate,
+      toDate,
+      eventTypesFiltered,
+    } = this.state;
+
+    let eveTypesQuery = eventTypesFiltered
+      .map((type) => {
+        return "eveType=" + type;
+      })
+      .join("&");
+
     const fetchedPage = await (
       await fetch(
-        `/api/events-sorted-custom/0/${size}/${sortedField}/${sortOrder}`,
+        `/api/events-filtered-sorted/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}`,
         {
           credentials: "include",
         }
@@ -93,8 +142,21 @@ class EventList extends Component {
   }
 
   async getSortedField(fieldName) {
-    const { pagedEvents, sortedField } = this.state;
+    const {
+      sortedField,
+      pagedEvents,
+      fromDate,
+      toDate,
+      eventTypesFiltered,
+    } = this.state;
     let { sortOrder } = this.state;
+
+    let eveTypesQuery = eventTypesFiltered
+      .map((type) => {
+        return "eveType=" + type;
+      })
+      .join("&");
+
     const pageSize = pagedEvents.pageable.pageSize;
     if (fieldName === sortedField) {
       if (sortOrder === "asce") {
@@ -109,7 +171,7 @@ class EventList extends Component {
     }
     const fetchedPage = await (
       await fetch(
-        `/api/events-sorted-custom/0/${pageSize}/${fieldName}/${sortOrder}`,
+        `/api/events-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}`,
         {
           credentials: "include",
         }
@@ -123,9 +185,83 @@ class EventList extends Component {
     });
   }
 
+  async applyFilters() {
+    const {
+      pagedEvents,
+      sortedField,
+      eventTypesFiltered,
+      sortOrder,
+      fromDate,
+      toDate,
+    } = this.state;
+
+    const pageSize = pagedEvents.pageable.pageSize;
+    let eveTypesQuery = eventTypesFiltered
+      .map((type) => {
+        return "eveType=" + type;
+      })
+      .join("&");
+
+    const fetchedPage = await (
+      await fetch(
+        `/api/events-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}`,
+        {
+          credentials: "include",
+        }
+      )
+    ).json();
+    this.setState({ pagedEvents: fetchedPage, currentPage: 0 });
+    this.createPageArray();
+  }
+
+  async setDateRange(newRange) {
+    if (newRange.length === 2) {
+      let formattedFromDate = null;
+      let formattedToDate = null;
+      let from = newRange[0];
+      let to = newRange[1];
+      //from date formatting
+      let month =
+        parseInt(from.getMonth() + 1) > 9
+          ? from.getMonth() + 1
+          : "0" + (from.getMonth() + 1);
+      let date =
+        parseInt(from.getDate()) > 9 ? from.getDate() : "0" + from.getDate();
+      formattedFromDate =
+        from.getFullYear() + "-" + month + "-" + date + " 00:00:00";
+      //to date formatting
+      let tMonth =
+        parseInt(to.getMonth() + 1) > 9
+          ? to.getMonth() + 1
+          : "0" + (to.getMonth() + 1);
+      let tDate =
+        parseInt(to.getDate()) > 9 ? to.getDate() : "0" + to.getDate();
+      formattedToDate =
+        to.getFullYear() + "-" + tMonth + "-" + tDate + " 00:00:00";
+
+      this.setState({
+        dateRange: newRange,
+        fromDate: formattedFromDate,
+        toDate: formattedToDate,
+      });
+    } else {
+      this.setState({ dateRange: newRange, fromDate: null, toDate: null });
+    }
+  }
+
+  filterEventTypes = (eveType) => (e) => {
+    let { eventTypesFiltered } = this.state;
+    if (e.target.checked === true) {
+      eventTypesFiltered.push(eveType);
+    } else {
+      eventTypesFiltered = eventTypesFiltered.filter((x) => x !== eveType);
+    }
+    this.setState({ eventTypesFiltered });
+  };
+
   render() {
     const { pagedEvents, isLoading, pages } = this.state;
-    const { currentPage } = this.state;
+    const { currentPage, dateRange, eventTypes } = this.state;
 
     const firstPageCheck = currentPage > 0 ? "" : "disabled";
     const lastPageCheck =
@@ -136,6 +272,29 @@ class EventList extends Component {
       return (
         <div>
           <img class="loading" src="/loading.gif" alt="Loading..." />
+        </div>
+      );
+    }
+
+    let eventTypesCheckBoxes = null;
+
+    if (eventTypes !== null) {
+      eventTypesCheckBoxes = eventTypes.map((type) => {
+        return (
+          <CustomInput
+            key={type.eventTypeId}
+            // checked={type.eventTypeDesc}
+            type="checkbox"
+            id={type.eventTypeId}
+            label={type.eventTypeDesc}
+            onChange={this.filterEventTypes(type.eventTypeDesc)}
+          />
+        );
+      });
+    } else {
+      eventTypesCheckBoxes = (
+        <div className="mono-font">
+          Error occurred in retrieving Event types
         </div>
       );
     }
@@ -208,6 +367,33 @@ class EventList extends Component {
       </Dropdown>
     );
 
+    const dateRangePicker = (
+      <DateRangePicker
+        placeholder={"Select date range..."}
+        value={dateRange}
+        onChange={this.setDateRange}
+      />
+    );
+
+    const filterAccordion = (
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<FilterListIcon />}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+          <Typography>Filter</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div className="paraSpace">{dateRangePicker}</div>
+          <div className="paraSpace">{eventTypesCheckBoxes}</div>
+          <div>
+            <Button onClick={() => this.applyFilters()}>Apply Filters</Button>
+          </div>
+        </AccordionDetails>
+      </Accordion>
+    );
+
     const eventList = pagedEvents.content.map((event) => {
       let sd = new Date(event.startDateTime);
       let ld = new Date(event.endDateTime);
@@ -268,7 +454,9 @@ class EventList extends Component {
           </div>
         </Container>
         <Container>
-          <h3>Events</h3>
+          <h3 className="headLineSpace">Events</h3>
+
+          <div className="float-left">{filterAccordion}</div>
           <Table className="mt-4">
             <thead>
               <tr>
@@ -285,6 +473,7 @@ class EventList extends Component {
                 >
                   Start Time
                 </th>
+
                 <th
                   width="12%"
                   onClick={() => this.getSortedField("endDateTime")}
@@ -292,7 +481,7 @@ class EventList extends Component {
                   End Time
                 </th>
                 <th width="10%">Type</th>
-                <th width="5%">Action</th>
+                <th width="10%">Action</th>
               </tr>
             </thead>
             <tbody>{eventList}</tbody>

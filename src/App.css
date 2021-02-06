@@ -168,10 +168,23 @@
 .fieldSpace {
   padding-left: 15px;
 }
+
+.headLineSpace {
+  padding-bottom: 2rem;
+}
+
 .inline-block {
   display: inline-block;
 }
 /* Delete icon */
 .delete-icon {
   margin-left: 1rem;
+}
+/*Date Picker */
+.fade.in {
+  opacity: 1 !important;
+}
+
+.accordion {
+  overflow: hidden;
 }
