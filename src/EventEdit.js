@@ -146,9 +146,6 @@ class EventEdit extends Component {
   }
 
   handleAudienceTypes = (id) => (e) => {
-    console.log(e.target.checked);
-    console.log(id);
-
     let audTypesArray = [...this.state.allAudienceTypes];
     const index = audTypesArray.findIndex((x) => x.audiencetypeId === id);
     audTypesArray[index].typeExist = e.target.checked;
@@ -160,9 +157,7 @@ class EventEdit extends Component {
     } else {
       eventAudienceTypes = eventAudienceTypes.filter((x) => x !== id);
       this.deleteAudienceType(id);
-      console.log("Audience Deleted: " + id);
     }
-    console.log("Updated: " + eventAudienceTypes);
     this.setState({ eventAudienceTypes });
   };
 
@@ -254,8 +249,6 @@ class EventEdit extends Component {
         return "audType=" + type;
       })
       .join("&");
-
-    console.log("types query: " + audTypesQuery);
 
     event.eventPresenters = null; //making it null before the PUT call, creating a deserialization error in Jackson otherwise
     event.eventaudienceType = null;
