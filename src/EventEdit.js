@@ -51,11 +51,13 @@ class EventEdit extends Component {
       orgId: "-1",
       allOrgNames: [],
       eventAudienceTypes: [],
+      eventStatusTypes: [],
       allAudienceTypes: null,
       eventUpdateAlert: false,
       newEventAlert: false,
       audienceTypeDeleteAlert: false,
       joinEve: false,
+      lastStatus: null,
       csrfToken: cookies.get("XSRF-TOKEN"),
     };
     this.handleChange = this.handleChange.bind(this);
@@ -67,6 +69,7 @@ class EventEdit extends Component {
     this.handleAudienceTypes = this.handleAudienceTypes.bind(this);
     this.handleStartDateChange = this.handleStartDateChange.bind(this);
     this.handleEndDateChange = this.handleEndDateChange.bind(this);
+    this.handleStatus = this.handleStatus.bind(this);
   }
 
   async componentDidMount() {
@@ -77,7 +80,10 @@ class EventEdit extends Component {
         })
       ).json();
 
-      this.setState({ event: exEvent });
+      this.setState({
+        event: exEvent,
+        lastStatus: exEvent.lastStatus,
+      });
     }
     const eveId =
       this.props.match.params.id === "new" ? -1 : this.props.match.params.id;
@@ -90,7 +96,15 @@ class EventEdit extends Component {
     const fetchOrgs = await (
       await fetch(`/api/allorgnames`, { credentials: "include" })
     ).json();
-    this.setState({ allOrgNames: fetchOrgs, allAudienceTypes: audiTypes });
+    //load status types
+    const fetchEventStatusTypes = await (
+      await fetch(`/api/eventStatusTypes`, { credentials: "include" })
+    ).json();
+    this.setState({
+      allOrgNames: fetchOrgs,
+      allAudienceTypes: audiTypes,
+      eventStatusTypes: fetchEventStatusTypes,
+    });
   }
 
   async removeOrg(eventId, orgId) {
@@ -235,11 +249,17 @@ class EventEdit extends Component {
     this.setState({ event });
   }
 
+  handleStatus(e) {
+    const target = e.target;
+    const value = target.value;
+    this.setState({ lastStatus: value });
+  }
+
   async handleSubmit(e) {
     e.preventDefault();
     const { event } = this.state;
     const { orgId } = this.state;
-    const { joinEve } = this.state;
+    const { joinEve, lastStatus } = this.state;
     const { eventAudienceTypes } = this.state;
     let headerEntries = "";
     let postId = "";
@@ -252,8 +272,9 @@ class EventEdit extends Component {
 
     event.eventPresenters = null; //making it null before the PUT call, creating a deserialization error in Jackson otherwise
     event.eventaudienceType = null;
+    event.lastStatus = null;
     await fetch(
-      `/api/event/${event.eventTypeDesc}/${orgId}/${joinEve}?${audTypesQuery}`,
+      `/api/event/${event.eventTypeDesc}/${orgId}/${joinEve}/${lastStatus}?${audTypesQuery}`,
       {
         method: event.eventId ? "PUT" : "POST",
         headers: {
@@ -286,7 +307,6 @@ class EventEdit extends Component {
         if (pair[0] === "location") {
           let loc = pair[1].toString();
           postId = loc.split("/").pop();
-          console.log("Post Id: " + postId);
           window.location.href = "/event/read/" + postId;
           break;
         }
@@ -296,7 +316,7 @@ class EventEdit extends Component {
   }
 
   render() {
-    const { event } = this.state;
+    const { event, lastStatus, eventStatusTypes } = this.state;
     const { allAudienceTypes } = this.state;
     const { allOrgNames } = this.state;
     const { eventUpdateAlert } = this.state;
@@ -334,7 +354,16 @@ class EventEdit extends Component {
       orgList = Object.entries(event.orgNames).map(([key, value]) => {
         return (
           <tr key={key}>
-            <td>{value}</td>
+            <td>
+              <a
+                style={{ color: "white" }}
+                target="_blank"
+                href={"/organization/read/" + key}
+              >
+                <b>{value[0]}</b>
+              </a>
+            </td>
+            <td>{value[1]}</td>
             <td>
               <ButtonGroup>
                 <Button
@@ -372,6 +401,7 @@ class EventEdit extends Component {
               <thead>
                 <tr>
                   <th width="20%">Name</th>
+                  <th width="10%">Last Status</th>
                   <th width="10%">Action</th>
                 </tr>
               </thead>
@@ -411,6 +441,15 @@ class EventEdit extends Component {
       });
     } else {
       audienceCheckBoxes = <b>Error occurred in retrieving audience types</b>;
+    }
+
+    let eventStatusInputs = null;
+    if (eventStatusTypes.length > 0) {
+      eventStatusInputs = eventStatusTypes.map((eveStatus) => {
+        return <option>{eveStatus.statusdesc}</option>;
+      });
+    } else {
+      eventStatusInputs = <i>No Status retrieved</i>;
     }
 
     return (
@@ -566,6 +605,20 @@ class EventEdit extends Component {
                   <option>Presentation</option>
                   <option>Resource Fair</option>
                   <option>Virtual Presentation</option>
+                </Input>
+              </FormGroup>
+              <FormGroup className="col-md-3 mb-3">
+                <Label for="lastStatus">Status</Label>
+                <Input
+                  type="select"
+                  name="lastStatus"
+                  id="lastStatus"
+                  value={lastStatus || ""}
+                  onChange={this.handleStatus}
+                  autoComplete="lastStatus"
+                >
+                  <option></option>
+                  {eventStatusInputs}
                 </Input>
               </FormGroup>
             </div>

@@ -425,7 +425,10 @@ class EventList extends Component {
         </AccordionSummary>
         <AccordionDetails>
           <div className="paraSpace">{dateRangePicker}</div>
-          <div className="paraSpace">{eventTypesCheckBoxes}</div>
+          <div className="paraSpace">
+            <h5>Event Type</h5>
+            {eventTypesCheckBoxes}
+          </div>
           <div>
             <Button onClick={() => this.applyFilters()}>Apply Filters</Button>
           </div>

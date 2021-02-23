@@ -111,7 +111,17 @@ class EventRead extends Component {
       orgList = Object.entries(event.orgNames).map(([key, value]) => {
         return (
           <tr key={key}>
-            <td>{value}</td>
+            <td>
+              {" "}
+              <a
+                style={{ color: "white" }}
+                target="_blank"
+                href={"/organization/read/" + key}
+              >
+                <b>{value[0]}</b>
+              </a>
+            </td>
+            <td>{value[1]}</td>
             <td>
               <ButtonGroup>
                 <Button
@@ -134,6 +144,7 @@ class EventRead extends Component {
             <thead>
               <tr>
                 <th width="20%">Name</th>
+                <th width="10%">Last Status</th>
                 <th width="10%">Action</th>
               </tr>
             </thead>
@@ -251,6 +262,10 @@ class EventRead extends Component {
               <div>
                 <span className="field fieldSpace">Event type:</span>
                 {event.eventTypeDesc}
+              </div>
+              <div>
+                <span className="field fieldSpace">Status:</span>
+                {event.lastStatus}
               </div>
             </div>
             <div className="row paraSpace">

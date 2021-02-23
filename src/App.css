@@ -192,3 +192,8 @@
 .accordion {
   overflow: hidden;
 }
+/*Search and Filters*/
+.fiter-spacing {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
