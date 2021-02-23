@@ -16,6 +16,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import { grey } from "@material-ui/core/colors";
 
 class OrgRead extends Component {
   static propTypes = {
@@ -515,6 +516,12 @@ class OrgRead extends Component {
       noteForm = <Button onClick={() => this.newNoteForm()}>Add Note</Button>;
     }
 
+    const newCallLogButton = (
+      <Button size="sm" color="success" href={"/callLog/new"}>
+        Add Call Log
+      </Button>
+    );
+
     //Organization Notes table
     let notes = null;
     if (orgNotes.length > 0) {
@@ -703,6 +710,10 @@ class OrgRead extends Component {
               <div>{pastEvents}</div>
             </p>
           </React.Fragment>
+          <Container style={{ backgroundColor: grey }}>
+            <div className="paraSpace">{newCallLogButton}</div>
+            <div className="headLineSpace">{callLogsView}</div>
+          </Container>
           <div>
             <Alert
               color="success"
@@ -734,7 +745,7 @@ class OrgRead extends Component {
             </div>
             <div>{notes}</div>
           </React.Fragment>
-          <div>{callLogsView}</div>
+
           <p>&nbsp;</p>
           <p>&nbsp;</p>
         </Container>

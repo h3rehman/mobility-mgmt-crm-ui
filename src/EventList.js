@@ -4,6 +4,8 @@ import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
 import FilterListIcon from "@material-ui/icons/FilterList";
+import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
+import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
@@ -261,7 +263,13 @@ class EventList extends Component {
 
   render() {
     const { pagedEvents, isLoading, pages } = this.state;
-    const { currentPage, dateRange, eventTypes } = this.state;
+    const {
+      currentPage,
+      dateRange,
+      eventTypes,
+      sortedField,
+      sortOrder,
+    } = this.state;
 
     const firstPageCheck = currentPage > 0 ? "" : "disabled";
     const lastPageCheck =
@@ -367,6 +375,37 @@ class EventList extends Component {
       </Dropdown>
     );
 
+    //Sort Order arrows
+    let sdArrow = null;
+    let edArrow = null;
+    let locArrow = null;
+    let citArrow = null;
+    if (sortOrder !== null) {
+      if (sortOrder === "asce") {
+        if (sortedField === "startDateTime") {
+          sdArrow = <ArrowUpwardIcon />;
+        } else if (sortedField === "location") {
+          locArrow = <ArrowUpwardIcon />;
+        } else if (sortedField === "city") {
+          citArrow = <ArrowUpwardIcon />;
+        } else if (sortedField === "endDateTime") {
+          edArrow = <ArrowUpwardIcon />;
+        }
+      } else if (sortOrder === "desc") {
+        if (sortedField === "startDateTime") {
+          sdArrow = <ArrowDownwardIcon />;
+        } else if (sortedField === "location") {
+          locArrow = <ArrowDownwardIcon />;
+        } else if (sortedField === "city") {
+          citArrow = <ArrowDownwardIcon />;
+        } else if (sortedField === "endDateTime") {
+          edArrow = <ArrowDownwardIcon />;
+        }
+      }
+    } else {
+      sdArrow = <ArrowDownwardIcon />;
+    }
+
     const dateRangePicker = (
       <DateRangePicker
         placeholder={"Select date range..."}
@@ -386,7 +425,10 @@ class EventList extends Component {
         </AccordionSummary>
         <AccordionDetails>
           <div className="paraSpace">{dateRangePicker}</div>
-          <div className="paraSpace">{eventTypesCheckBoxes}</div>
+          <div className="paraSpace">
+            <h5>Event Type</h5>
+            {eventTypesCheckBoxes}
+          </div>
           <div>
             <Button onClick={() => this.applyFilters()}>Apply Filters</Button>
           </div>
@@ -460,25 +502,35 @@ class EventList extends Component {
           <Table className="mt-4">
             <thead>
               <tr>
-                <th width="15%" onClick={() => this.getSortedField("location")}>
-                  Location
+                <th
+                  className="link"
+                  width="15%"
+                  onClick={() => this.getSortedField("location")}
+                >
+                  Location {locArrow}
                 </th>
                 <th width="10%">Presenter(s)</th>
-                <th width="10%" onClick={() => this.getSortedField("city")}>
-                  City
+                <th
+                  className="link"
+                  width="10%"
+                  onClick={() => this.getSortedField("city")}
+                >
+                  City {citArrow}
                 </th>
                 <th
+                  className="link"
                   width="12%"
                   onClick={() => this.getSortedField("startDateTime")}
                 >
-                  Start Time
+                  Start Time {sdArrow}
                 </th>
 
                 <th
+                  className="link"
                   width="12%"
                   onClick={() => this.getSortedField("endDateTime")}
                 >
-                  End Time
+                  End Time {edArrow}
                 </th>
                 <th width="10%">Type</th>
                 <th width="10%">Action</th>

@@ -161,9 +161,7 @@ class CallLogEdit extends Component {
         note: { ...this.state.note, noteEntry: value },
       });
     } else if (name === "lastStatus") {
-      console.log("Status: " + value);
       var index = e.nativeEvent.target.selectedIndex;
-      console.log("Option ID: " + e.nativeEvent.target[index].id);
       this.setState({ lastStatusId: e.nativeEvent.target[index].id });
       let { note } = this.state;
       note.callLog.status.lastStatus = value;
@@ -291,7 +289,9 @@ class CallLogEdit extends Component {
         <div className="row paraSpace">
           <div>
             <span className="field">Organization:</span>{" "}
-            <b>{callLog.org.orgName}</b>
+            <Link to={"/organization/read/" + callLog.org.orgId}>
+              <b>{callLog.org.orgName}</b>
+            </Link>
           </div>
           <div className="field fieldSpace">
             <Button
