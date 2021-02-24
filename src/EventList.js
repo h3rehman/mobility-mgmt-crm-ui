@@ -380,12 +380,15 @@ class EventList extends Component {
     let edArrow = null;
     let locArrow = null;
     let citArrow = null;
+    let eveArrow = null;
     if (sortOrder !== null) {
       if (sortOrder === "asce") {
         if (sortedField === "startDateTime") {
           sdArrow = <ArrowUpwardIcon />;
         } else if (sortedField === "location") {
           locArrow = <ArrowUpwardIcon />;
+        } else if (sortedField === "eventName") {
+          eveArrow = <ArrowUpwardIcon />;
         } else if (sortedField === "city") {
           citArrow = <ArrowUpwardIcon />;
         } else if (sortedField === "endDateTime") {
@@ -396,6 +399,8 @@ class EventList extends Component {
           sdArrow = <ArrowDownwardIcon />;
         } else if (sortedField === "location") {
           locArrow = <ArrowDownwardIcon />;
+        } else if (sortedField === "eventName") {
+          eveArrow = <ArrowDownwardIcon />;
         } else if (sortedField === "city") {
           citArrow = <ArrowDownwardIcon />;
         } else if (sortedField === "endDateTime") {
@@ -444,6 +449,7 @@ class EventList extends Component {
           <td style={{ whiteSpace: "nowrap" }}>
             <Link to={"/event/read/" + event.eventId}>{event.location}</Link>
           </td>
+          <td className="small-font">{event.eventName}</td>
           <td>
             {event.eventPresenters.map((presenter) => {
               return (
@@ -499,7 +505,7 @@ class EventList extends Component {
           <h3 className="headLineSpace">Events</h3>
 
           <div className="float-left">{filterAccordion}</div>
-          <Table className="mt-4">
+          <Table className="mt-4" responsive bordered hover>
             <thead>
               <tr>
                 <th
@@ -509,7 +515,14 @@ class EventList extends Component {
                 >
                   Location {locArrow}
                 </th>
-                <th width="10%">Presenter(s)</th>
+                <th
+                  className="link"
+                  width="15%"
+                  onClick={() => this.getSortedField("eventName")}
+                >
+                  Event Name {eveArrow}
+                </th>
+                <th width="15%">Presenter(s)</th>
                 <th
                   className="link"
                   width="10%"
@@ -519,7 +532,7 @@ class EventList extends Component {
                 </th>
                 <th
                   className="link"
-                  width="12%"
+                  width="18%"
                   onClick={() => this.getSortedField("startDateTime")}
                 >
                   Start Time {sdArrow}
@@ -527,7 +540,7 @@ class EventList extends Component {
 
                 <th
                   className="link"
-                  width="12%"
+                  width="18%"
                   onClick={() => this.getSortedField("endDateTime")}
                 >
                   End Time {edArrow}

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link, withRouter } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Button,
   Container,
@@ -40,6 +40,7 @@ class OrgEdit extends Component {
     title: "",
     email: "",
     phone: "",
+    altPhone: "",
   };
 
   constructor(props) {
@@ -98,7 +99,6 @@ class OrgEdit extends Component {
     event.preventDefault();
     const { conObj } = this.state;
     const { item } = this.state;
-    console.log("handleConSubmit Called!");
 
     await fetch(`/api/orgContact/${item.orgId}`, {
       method: "POST",
@@ -116,7 +116,7 @@ class OrgEdit extends Component {
   async handleSubmit(event) {
     event.preventDefault();
     const { item } = this.state;
-    console.log("handleSubmit Called!");
+
     let headerEntries = "";
     let postId = "";
     await fetch(`/api/organization/${item.countyName}`, {
@@ -149,7 +149,6 @@ class OrgEdit extends Component {
         if (pair[0] === "location") {
           let loc = pair[1].toString();
           postId = loc.split("/").pop();
-          console.log("Post Id: " + postId);
 
           window.location.href = "/organizations/" + postId;
           break;
@@ -266,6 +265,17 @@ class OrgEdit extends Component {
                 autoComplete="phone"
               />
             </FormGroup>
+            <FormGroup className="col-md-2 mb-2">
+              <Label for="altPhone">Alt. Phone</Label>
+              <Input
+                type="text"
+                name="altPhone"
+                id="altPhone"
+                value={conObj.altPhone || ""}
+                onChange={this.handleConChange}
+                autoComplete="altPhone"
+              />
+            </FormGroup>
           </div>
           <FormGroup>
             <Button size="sm" color="primary" type="submit">
@@ -296,6 +306,7 @@ class OrgEdit extends Component {
             <td>{contact.title}</td>
             <td>{contact.email}</td>
             <td>{contact.phone}</td>
+            <td>{contact.altPhone}</td>
             <td>
               <ButtonGroup>
                 <Button
@@ -328,7 +339,7 @@ class OrgEdit extends Component {
       contacts = (
         <div>
           <h5>Contact List for {item.orgname}</h5>
-          <Table responsive>
+          <Table size="sm" responsive bordered hover>
             <thead>
               <tr>
                 <th width="5%">First Name</th>
@@ -336,6 +347,7 @@ class OrgEdit extends Component {
                 <th width="5%">Title</th>
                 <th width="5%">Email</th>
                 <th width="5%">Phone</th>
+                <th width="5%">Alt. Phone</th>
                 <th width="5%">Action</th>
               </tr>
             </thead>
@@ -537,121 +549,127 @@ class OrgEdit extends Component {
           >
             {item.orgname} is created! PLEASE WAIT FOR THE PAGE TO REFRESH!
           </Alert>
-          <Form onSubmit={this.handleSubmit}>
-            <FormGroup>
-              <Label for="orgname">
-                Name <span class="required">*</span>
-              </Label>
-              <Input
-                required
-                type="text"
-                name="orgname"
-                id="orgname"
-                value={item.orgname || ""}
-                onChange={this.handleChange}
-                autoComplete="orgname"
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label for="address">Address</Label>
-              <Input
-                type="text"
-                name="address"
-                id="address"
-                value={item.address || ""}
-                onChange={this.handleChange}
-                autoComplete="address-level1"
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label for="city">City</Label>
-              <Input
-                type="text"
-                name="city"
-                id="city"
-                value={item.city || ""}
-                onChange={this.handleChange}
-                autoComplete="address-level1"
-              />
-            </FormGroup>
-            <div className="row">
-              <FormGroup className="col-md-4 mb-3">
-                <Label for="phone">Corporate Phone</Label>
-                <Input
-                  type="text"
-                  name="phone"
-                  id="phone"
-                  value={item.phone || ""}
-                  onChange={this.handleChange}
-                  autoComplete="address-level1"
-                />
+          <div className="paraSpace">
+            <Form onSubmit={this.handleSubmit}>
+              <div className="row">
+                <FormGroup className="col-md-9 mb-3">
+                  <Label for="orgname">
+                    Name <span class="required">*</span>
+                  </Label>
+                  <Input
+                    required
+                    type="text"
+                    name="orgname"
+                    id="orgname"
+                    value={item.orgname || ""}
+                    onChange={this.handleChange}
+                    autoComplete="orgname"
+                  />
+                </FormGroup>
+              </div>
+              <div className="row">
+                <FormGroup className="col-md-6 mb-3">
+                  <Label for="address">Address</Label>
+                  <Input
+                    type="text"
+                    name="address"
+                    id="address"
+                    value={item.address || ""}
+                    onChange={this.handleChange}
+                    autoComplete="address-level1"
+                  />
+                </FormGroup>
+                <FormGroup className="col-md-2 mb-3">
+                  <Label for="city">City</Label>
+                  <Input
+                    type="text"
+                    name="city"
+                    id="city"
+                    value={item.city || ""}
+                    onChange={this.handleChange}
+                    autoComplete="address-level1"
+                  />
+                </FormGroup>
+              </div>
+              <div className="row">
+                <FormGroup className="col-md-2 mb-3">
+                  <Label for="phone">Organization Phone</Label>
+                  <Input
+                    type="text"
+                    name="phone"
+                    id="phone"
+                    value={item.phone || ""}
+                    onChange={this.handleChange}
+                    autoComplete="address-level1"
+                  />
+                </FormGroup>
+                <FormGroup className="col-md-2 mb-3">
+                  <Label for="email">Organization Email</Label>
+                  <Input
+                    type="text"
+                    name="email"
+                    id="email"
+                    value={item.email || ""}
+                    onChange={this.handleChange}
+                    autoComplete="address-level1"
+                  />
+                </FormGroup>
+                <FormGroup className="col-md-3 mb-3">
+                  <Label for="countyName">
+                    County <span class="required">*</span>
+                  </Label>
+                  <Input
+                    required
+                    type="select"
+                    name="countyName"
+                    id="countyName"
+                    value={item.countyName || ""}
+                    onChange={this.handleChange}
+                    autoComplete="address-level1"
+                  >
+                    <option></option>
+                    <option>Chicago - North</option>
+                    <option>Chicago - South</option>
+                    <option>McHenry</option>
+                    <option>Lake</option>
+                    <option>Kane</option>
+                    <option>Will</option>
+                    <option>DuPage</option>
+                    <option>Northwest Cook</option>
+                    <option>North Central Cook</option>
+                    <option>Central Cook</option>
+                    <option>Southwest Cook</option>
+                    <option>South Cook</option>
+                  </Input>
+                </FormGroup>
+                <FormGroup className="col-md-2 mb-3">
+                  <Label for="zip">Zip</Label>
+                  <Input
+                    type="text"
+                    name="zip"
+                    id="zip"
+                    value={item.zip || ""}
+                    onChange={this.handleChange}
+                    autoComplete="address-level1"
+                  />
+                </FormGroup>
+              </div>
+              <React.Fragment>{contacts}</React.Fragment>
+              <React.Fragment>
+                <p>
+                  <div>{upEvents}</div>
+                </p>
+              </React.Fragment>
+              <FormGroup>
+                <Button color="primary" type="submit">
+                  Save
+                </Button>{" "}
+                <Button color="secondary" tag={Link} to="/organizations">
+                  Go back to Organizations
+                </Button>
               </FormGroup>
-              <FormGroup className="col-md-5 mb-3">
-                <Label for="email">Corporate Email</Label>
-                <Input
-                  type="text"
-                  name="email"
-                  id="email"
-                  value={item.email || ""}
-                  onChange={this.handleChange}
-                  autoComplete="address-level1"
-                />
-              </FormGroup>
-              <FormGroup className="col-md-3 mb-3">
-                <Label for="countyName">
-                  County <span class="required">*</span>
-                </Label>
-                <Input
-                  required
-                  type="select"
-                  name="countyName"
-                  id="countyName"
-                  value={item.countyName || ""}
-                  onChange={this.handleChange}
-                  autoComplete="address-level1"
-                >
-                  <option></option>
-                  <option>Chicago - North</option>
-                  <option>Chicago - South</option>
-                  <option>McHenry</option>
-                  <option>Lake</option>
-                  <option>Kane</option>
-                  <option>Will</option>
-                  <option>DuPage</option>
-                  <option>Northwest Cook</option>
-                  <option>North Central Cook</option>
-                  <option>Central Cook</option>
-                  <option>Southwest Cook</option>
-                  <option>South Cook</option>
-                </Input>
-              </FormGroup>
-              <FormGroup className="col-md-3 mb-3">
-                <Label for="zip">Zip</Label>
-                <Input
-                  type="text"
-                  name="zip"
-                  id="zip"
-                  value={item.zip || ""}
-                  onChange={this.handleChange}
-                  autoComplete="address-level1"
-                />
-              </FormGroup>
-            </div>
-            <React.Fragment>{contacts}</React.Fragment>
-            <React.Fragment>
-              <p>
-                <div>{upEvents}</div>
-              </p>
-            </React.Fragment>
-            <FormGroup>
-              <Button color="primary" type="submit">
-                Save
-              </Button>{" "}
-              <Button color="secondary" tag={Link} to="/organizations">
-                Go back to Organizations
-              </Button>
-            </FormGroup>
-          </Form>
+            </Form>
+          </div>
           <p>
             <div>{contactForm}</div>
           </p>

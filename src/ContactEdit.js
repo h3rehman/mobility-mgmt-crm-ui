@@ -103,7 +103,7 @@ class ContactEdit extends Component {
               </FormGroup>
             </div>
             <div className="row">
-              <FormGroup className="col-md-4 mb-3">
+              <FormGroup className="col-md-2 mb-3">
                 <Label for="phone">Phone</Label>
                 <Input
                   type="text"
@@ -114,7 +114,18 @@ class ContactEdit extends Component {
                   autoComplete="phone"
                 />
               </FormGroup>
-              <FormGroup className="col-md-4 mb-3">
+              <FormGroup className="col-md-2 mb-3">
+                <Label for="altPhone">Alternate Phone</Label>
+                <Input
+                  type="text"
+                  name="altPhone"
+                  id="altPhone"
+                  value={item.altPhone || ""}
+                  onChange={this.handleChange}
+                  autoComplete="altPhone"
+                />
+              </FormGroup>
+              <FormGroup className="col-md-3 mb-3">
                 <Label for="email">Email</Label>
                 <Input
                   type="text"
