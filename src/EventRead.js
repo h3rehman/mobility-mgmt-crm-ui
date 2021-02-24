@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link, withRouter } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button, Container, ButtonGroup, Table } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
@@ -113,13 +113,13 @@ class EventRead extends Component {
           <tr key={key}>
             <td>
               {" "}
-              <a
+              <Link
                 style={{ color: "white" }}
                 target="_blank"
-                href={"/organization/read/" + key}
+                to={"/organization/read/" + key}
               >
                 <b>{value[0]}</b>
-              </a>
+              </Link>
             </td>
             <td>{value[1]}</td>
             <td>

@@ -281,6 +281,7 @@ class OrgRead extends Component {
             <td>{contact.title}</td>
             <td>{contact.email}</td>
             <td>{contact.phone}</td>
+            <td>{contact.phone}</td>
             <td>
               <ButtonGroup>
                 <Button
@@ -299,7 +300,7 @@ class OrgRead extends Component {
       contacts = (
         <div>
           <h6>Contact List for {item.orgname}</h6>
-          <Table responsive className="small" bordered hover>
+          <Table size="sm" responsive className="small" bordered hover>
             <thead>
               <tr>
                 <th width="5%">First Name</th>
@@ -307,6 +308,7 @@ class OrgRead extends Component {
                 <th width="5%">Title</th>
                 <th width="5%">Email</th>
                 <th width="5%">Phone</th>
+                <th width="5%">Alt. Phone</th>
                 <th width="5%">Action</th>
               </tr>
             </thead>
@@ -517,7 +519,13 @@ class OrgRead extends Component {
     }
 
     const newCallLogButton = (
-      <Button size="sm" color="success" href={"/callLog/new"}>
+      <Button
+        tag={Link}
+        target="_blank"
+        size="sm"
+        color="success"
+        to={"/callLog/new"}
+      >
         Add Call Log
       </Button>
     );

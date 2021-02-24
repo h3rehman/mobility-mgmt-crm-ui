@@ -355,13 +355,13 @@ class EventEdit extends Component {
         return (
           <tr key={key}>
             <td>
-              <a
+              <Link
                 style={{ color: "white" }}
                 target="_blank"
-                href={"/organization/read/" + key}
+                to={"/organization/read/" + key}
               >
                 <b>{value[0]}</b>
-              </a>
+              </Link>
             </td>
             <td>{value[1]}</td>
             <td>
@@ -484,7 +484,7 @@ class EventEdit extends Component {
           </Alert>
           <Form onSubmit={this.handleSubmit}>
             <FormGroup>
-              <Label for="eventName">Name</Label>
+              <Label for="eventName">Event Name</Label>
               <Input
                 type="text"
                 name="eventName"

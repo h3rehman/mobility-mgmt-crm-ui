@@ -439,7 +439,9 @@ class AllOrgsList extends Component {
       return (
         <tr key={org.orgId}>
           <td style={{ whiteSpace: "nowrap" }}>
-            <Link to={"/organization/read/" + org.orgId}>{org.orgname}</Link>
+            <Link target="_blank" to={"/organization/read/" + org.orgId}>
+              {org.orgname}
+            </Link>
           </td>
           <td>{org.lastStatus}</td>
           <td>{org.city}</td>
@@ -471,7 +473,7 @@ class AllOrgsList extends Component {
           </div>
           <h3>Organizations</h3>
           <div className="float-left">{filterAccordion}</div>
-          <Table className="mt-4" hover>
+          <Table className="mt-4" responsive bordered hover>
             <thead>
               <tr>
                 <th
