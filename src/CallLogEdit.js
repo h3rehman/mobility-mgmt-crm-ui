@@ -393,7 +393,7 @@ class CallLogEdit extends Component {
       noteForm = (
         <div className="row">
           <FormGroup>
-            <Label for="noteEntry">Note/Comments</Label>
+            <Label for="noteEntry">Call Log Comments</Label>
             <Input
               type="textarea"
               name="noteEntry"

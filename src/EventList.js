@@ -46,6 +46,8 @@ class EventList extends Component {
       toDate: null,
       eventTypes: [],
       eventTypesFiltered: [],
+      eventStatuses: [],
+      statusFiltered: [],
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.pageLink = this.pageLink.bind(this);
@@ -54,6 +56,7 @@ class EventList extends Component {
     this.toggle = this.toggle.bind(this);
     this.setDateRange = this.setDateRange.bind(this);
     this.filterEventTypes = this.filterEventTypes.bind(this);
+    this.filterStatus = this.filterStatus.bind(this);
   }
 
   async componentDidMount() {
@@ -69,7 +72,14 @@ class EventList extends Component {
         credentials: "include",
       })
     ).json();
-    this.setState({ eventTypes: fetchedEventTypes });
+    //load event status types
+    const fetchedEventStatusTypes = await (
+      await fetch(`/api/eventStatusTypes`, { credentials: "include" })
+    ).json();
+    this.setState({
+      eventTypes: fetchedEventTypes,
+      eventStatuses: fetchedEventStatusTypes,
+    });
   }
 
   toggle() {
@@ -88,6 +98,24 @@ class EventList extends Component {
     this.setState({ pages: pages });
   }
 
+  eventTypesQueryURL(eveTypesArray) {
+    const queryURL = eveTypesArray
+      .map((type) => {
+        return "eveType=" + type;
+      })
+      .join("&");
+    return queryURL;
+  }
+
+  eventStatusesQueryURL(statusArray) {
+    const queryURL = statusArray
+      .map((status) => {
+        return "eveStatus=" + status;
+      })
+      .join("&");
+    return queryURL;
+  }
+
   async pageLink(page) {
     const {
       pagedEvents,
@@ -96,18 +124,16 @@ class EventList extends Component {
       fromDate,
       toDate,
       eventTypesFiltered,
+      statusFiltered,
     } = this.state;
     const pageSize = pagedEvents.pageable.pageSize;
 
-    let eveTypesQuery = eventTypesFiltered
-      .map((type) => {
-        return "eveType=" + type;
-      })
-      .join("&");
+    let eveTypesQuery = this.eventTypesQueryURL(eventTypesFiltered);
+    let eveStatusQuery = this.eventStatusesQueryURL(statusFiltered);
 
     const fetchedPage = await (
       await fetch(
-        `/api/events-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}`,
+        `/api/events-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -123,17 +149,15 @@ class EventList extends Component {
       fromDate,
       toDate,
       eventTypesFiltered,
+      statusFiltered,
     } = this.state;
 
-    let eveTypesQuery = eventTypesFiltered
-      .map((type) => {
-        return "eveType=" + type;
-      })
-      .join("&");
+    let eveTypesQuery = this.eventTypesQueryURL(eventTypesFiltered);
+    let eveStatusQuery = this.eventStatusesQueryURL(statusFiltered);
 
     const fetchedPage = await (
       await fetch(
-        `/api/events-filtered-sorted/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}`,
+        `/api/events-filtered-sorted/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -150,14 +174,12 @@ class EventList extends Component {
       fromDate,
       toDate,
       eventTypesFiltered,
+      statusFiltered,
     } = this.state;
     let { sortOrder } = this.state;
 
-    let eveTypesQuery = eventTypesFiltered
-      .map((type) => {
-        return "eveType=" + type;
-      })
-      .join("&");
+    let eveTypesQuery = this.eventTypesQueryURL(eventTypesFiltered);
+    let eveStatusQuery = this.eventStatusesQueryURL(statusFiltered);
 
     const pageSize = pagedEvents.pageable.pageSize;
     if (fieldName === sortedField) {
@@ -173,7 +195,7 @@ class EventList extends Component {
     }
     const fetchedPage = await (
       await fetch(
-        `/api/events-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}`,
+        `/api/events-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -195,18 +217,17 @@ class EventList extends Component {
       sortOrder,
       fromDate,
       toDate,
+      statusFiltered,
     } = this.state;
 
     const pageSize = pagedEvents.pageable.pageSize;
-    let eveTypesQuery = eventTypesFiltered
-      .map((type) => {
-        return "eveType=" + type;
-      })
-      .join("&");
+
+    let eveTypesQuery = this.eventTypesQueryURL(eventTypesFiltered);
+    let eveStatusQuery = this.eventStatusesQueryURL(statusFiltered);
 
     const fetchedPage = await (
       await fetch(
-        `/api/events-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}`,
+        `/api/events-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -261,12 +282,23 @@ class EventList extends Component {
     this.setState({ eventTypesFiltered });
   };
 
+  filterStatus = (status) => (e) => {
+    let { statusFiltered } = this.state;
+    if (e.target.checked === true) {
+      statusFiltered.push(status);
+    } else {
+      statusFiltered = statusFiltered.filter((x) => x !== status);
+    }
+    this.setState({ statusFiltered });
+  };
+
   render() {
     const { pagedEvents, isLoading, pages } = this.state;
     const {
       currentPage,
       dateRange,
       eventTypes,
+      eventStatuses,
       sortedField,
       sortOrder,
     } = this.state;
@@ -305,6 +337,21 @@ class EventList extends Component {
           Error occurred in retrieving Event types
         </div>
       );
+    }
+
+    let statusCheckBoxes = null;
+    if (eventStatuses.length > 0) {
+      statusCheckBoxes = eventStatuses.map((status) => {
+        return (
+          <CustomInput
+            key={status.statusId}
+            type="checkbox"
+            id={status.statusId}
+            label={status.statusdesc}
+            onChange={this.filterStatus(status.statusdesc)}
+          />
+        );
+      });
     }
 
     const pageNumbers = pages.map((number) => {
@@ -430,9 +477,19 @@ class EventList extends Component {
         </AccordionSummary>
         <AccordionDetails>
           <div className="paraSpace">{dateRangePicker}</div>
-          <div className="paraSpace">
-            <h5>Event Type</h5>
-            {eventTypesCheckBoxes}
+          <div className="row fiter-spacing">
+            <div className="paraSpace">
+              <div>
+                <h5>Event Type</h5>
+                {eventTypesCheckBoxes}
+              </div>
+            </div>
+            <div className="paraSpace fieldSpace">
+              <div>
+                <h5>Event Statuses</h5>
+                {statusCheckBoxes}
+              </div>
+            </div>
           </div>
           <div>
             <Button onClick={() => this.applyFilters()}>Apply Filters</Button>
@@ -446,10 +503,11 @@ class EventList extends Component {
       let ld = new Date(event.endDateTime);
       return (
         <tr key={event.eventId}>
-          <td style={{ whiteSpace: "nowrap" }}>
+          <td className="small-font" style={{ whiteSpace: "nowrap" }}>
             <Link to={"/event/read/" + event.eventId}>{event.location}</Link>
           </td>
           <td className="small-font">{event.eventName}</td>
+          <td className="small-font">{event.lastStatus}</td>
           <td>
             {event.eventPresenters.map((presenter) => {
               return (
@@ -522,17 +580,18 @@ class EventList extends Component {
                 >
                   Event Name {eveArrow}
                 </th>
+                <th width="18%">Event Status</th>
                 <th width="15%">Presenter(s)</th>
                 <th
                   className="link"
-                  width="10%"
+                  width="5%"
                   onClick={() => this.getSortedField("city")}
                 >
                   City {citArrow}
                 </th>
                 <th
                   className="link"
-                  width="18%"
+                  width="20%"
                   onClick={() => this.getSortedField("startDateTime")}
                 >
                   Start Time {sdArrow}
@@ -540,13 +599,13 @@ class EventList extends Component {
 
                 <th
                   className="link"
-                  width="18%"
+                  width="20%"
                   onClick={() => this.getSortedField("endDateTime")}
                 >
                   End Time {edArrow}
                 </th>
                 <th width="10%">Type</th>
-                <th width="10%">Action</th>
+                <th width="5%">Action</th>
               </tr>
             </thead>
             <tbody>{eventList}</tbody>
