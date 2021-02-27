@@ -680,7 +680,13 @@ class OrgRead extends Component {
           {title}
           <div className="detailsBlock">
             <div className="row paraSpace">
-              <span className="field">Name:</span> {item.orgname}
+              <div>
+                <span className="field">Name:</span> {item.orgname}
+              </div>
+              <div>
+                <span className="field fieldSpace">Last Status:</span>
+                {item.lastStatus}
+              </div>
             </div>
             <div className="row paraSpace">
               <span className="field">Address:</span> {item.address}

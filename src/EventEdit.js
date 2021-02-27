@@ -58,6 +58,7 @@ class EventEdit extends Component {
       audienceTypeDeleteAlert: false,
       joinEve: false,
       lastStatus: null,
+      eventTypes: [],
       csrfToken: cookies.get("XSRF-TOKEN"),
     };
     this.handleChange = this.handleChange.bind(this);
@@ -100,10 +101,17 @@ class EventEdit extends Component {
     const fetchEventStatusTypes = await (
       await fetch(`/api/eventStatusTypes`, { credentials: "include" })
     ).json();
+    //load event types
+    const fetchedEventTypes = await (
+      await fetch("/api/all-event-types", {
+        credentials: "include",
+      })
+    ).json();
     this.setState({
       allOrgNames: fetchOrgs,
       allAudienceTypes: audiTypes,
       eventStatusTypes: fetchEventStatusTypes,
+      eventTypes: fetchedEventTypes,
     });
   }
 
@@ -316,7 +324,7 @@ class EventEdit extends Component {
   }
 
   render() {
-    const { event, lastStatus, eventStatusTypes } = this.state;
+    const { event, lastStatus, eventStatusTypes, eventTypes } = this.state;
     const { allAudienceTypes } = this.state;
     const { allOrgNames } = this.state;
     const { eventUpdateAlert } = this.state;
@@ -452,6 +460,15 @@ class EventEdit extends Component {
       eventStatusInputs = <i>No Status retrieved</i>;
     }
 
+    let eventTypeInputs = null;
+    if (eventTypes.length > 0) {
+      eventTypeInputs = eventTypes.map((eveType) => {
+        return <option>{eveType.eventTypeDesc}</option>;
+      });
+    } else {
+      eventTypeInputs = <i>No Status retrieved</i>;
+    }
+
     return (
       <div>
         <AppNavbar />
@@ -580,7 +597,7 @@ class EventEdit extends Component {
               <FormGroup className="col-md-2 mb-3">
                 <Label for="audienceCount">Audience Count</Label>
                 <Input
-                  type="text"
+                  type="number"
                   name="audienceCount"
                   id="audienceCount"
                   value={event.audienceCount || ""}
@@ -602,9 +619,7 @@ class EventEdit extends Component {
                   autoComplete="eventTypeDesc"
                 >
                   <option></option>
-                  <option>Presentation</option>
-                  <option>Resource Fair</option>
-                  <option>Virtual Presentation</option>
+                  {eventTypeInputs}
                 </Input>
               </FormGroup>
               <FormGroup className="col-md-3 mb-3">

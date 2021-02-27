@@ -49,6 +49,7 @@ class OrgEdit extends Component {
     this.state = {
       item: this.emptyItem,
       conObj: this.emptyContact,
+      counties: [],
       contactFormCheck: false,
       addContactButton: "none",
       orgUpdateAlert: false,
@@ -74,6 +75,12 @@ class OrgEdit extends Component {
       this.setState({ item: org });
       this.setState({ addContactButton: "block" });
     }
+    const fetchedCounties = await (
+      await fetch("/api/counties", {
+        credentials: "include",
+      })
+    ).json();
+    this.setState({ counties: fetchedCounties });
   }
 
   //manages state for contact form
@@ -189,7 +196,7 @@ class OrgEdit extends Component {
 
   render() {
     const { item } = this.state;
-    const { conObj } = this.state;
+    const { conObj, counties } = this.state;
     const { contactFormCheck } = this.state;
     const { addContactButton } = this.state;
     const { orgUpdateAlert } = this.state;
@@ -519,6 +526,15 @@ class OrgEdit extends Component {
       );
     }
 
+    let countyInputs = null;
+    if (counties.length > 0) {
+      countyInputs = counties.map((county) => {
+        return <option>{county.countyDesc}</option>;
+      });
+    } else {
+      countyInputs = <i>No County retrieved</i>;
+    }
+
     return (
       <div>
         <AppNavbar />
@@ -628,18 +644,7 @@ class OrgEdit extends Component {
                     autoComplete="address-level1"
                   >
                     <option></option>
-                    <option>Chicago - North</option>
-                    <option>Chicago - South</option>
-                    <option>McHenry</option>
-                    <option>Lake</option>
-                    <option>Kane</option>
-                    <option>Will</option>
-                    <option>DuPage</option>
-                    <option>Northwest Cook</option>
-                    <option>North Central Cook</option>
-                    <option>Central Cook</option>
-                    <option>Southwest Cook</option>
-                    <option>South Cook</option>
+                    {countyInputs}
                   </Input>
                 </FormGroup>
                 <FormGroup className="col-md-2 mb-3">

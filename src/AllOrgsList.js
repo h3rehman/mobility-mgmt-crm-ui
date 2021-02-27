@@ -382,20 +382,26 @@ class AllOrgsList extends Component {
     let countyArrow = null;
     let citArrow = null;
     let statusArrow = null;
+    let lastConArrow = null;
+
     if (sortOrder !== null) {
       if (sortOrder === "asce") {
         if (sortedField === "orgname") {
           orgArrow = <ArrowUpwardIcon />;
+        } else if (sortedField === "lastContact") {
+          lastConArrow = <ArrowUpwardIcon />;
+        } else if (sortedField === "lastStatus.statusDesc") {
+          statusArrow = <ArrowUpwardIcon />;
         } else if (sortedField === "county.countyDesc") {
           countyArrow = <ArrowUpwardIcon />;
         } else if (sortedField === "city") {
           citArrow = <ArrowUpwardIcon />;
-        } else if (sortedField === "lastStatus.statusDesc") {
-          statusArrow = <ArrowUpwardIcon />;
         }
       } else if (sortOrder === "desc") {
         if (sortedField === "orgname") {
           orgArrow = <ArrowDownwardIcon />;
+        } else if (sortedField === "lastContact") {
+          lastConArrow = <ArrowDownwardIcon />;
         } else if (sortedField === "county.countyDesc") {
           countyArrow = <ArrowDownwardIcon />;
         } else if (sortedField === "city") {
@@ -436,6 +442,18 @@ class AllOrgsList extends Component {
     );
 
     const orgList = pagedOrgs.content.map((org) => {
+      let lastContactDate = null;
+      if (org.lastContact != null) {
+        let lc = new Date(org.lastContact);
+        lastContactDate =
+          lc.toLocaleDateString() +
+          " " +
+          lc.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      }
+
       return (
         <tr key={org.orgId}>
           <td style={{ whiteSpace: "nowrap" }}>
@@ -443,9 +461,10 @@ class AllOrgsList extends Component {
               {org.orgname}
             </Link>
           </td>
-          <td>{org.lastStatus}</td>
-          <td>{org.city}</td>
-          <td>{org.countyName}</td>
+          <td className="small-font">{org.lastStatus}</td>
+          <td className="small-font">{org.city}</td>
+          <td className="small-font">{org.countyName}</td>
+          <td className="small-font">{lastContactDate}</td>
           <td>
             <ButtonGroup>
               <Button
@@ -499,12 +518,19 @@ class AllOrgsList extends Component {
                 </th>
                 <th
                   className="link"
-                  width="20%"
+                  width="10%"
                   onClick={() => this.getSortedField("county.countyDesc")}
                 >
                   County {countyArrow}
                 </th>
-                <th width="10%">Action</th>
+                <th
+                  className="link"
+                  width="12%"
+                  onClick={() => this.getSortedField("lastContact")}
+                >
+                  Last Contact {lastConArrow}
+                </th>
+                <th width="5%">Action</th>
               </tr>
             </thead>
             <tbody>{orgList}</tbody>
