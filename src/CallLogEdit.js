@@ -163,6 +163,8 @@ class CallLogEdit extends Component {
     } else if (name === "lastStatus") {
       var index = e.nativeEvent.target.selectedIndex;
       this.setState({ lastStatusId: e.nativeEvent.target[index].id });
+      console.log("Last Status set: " + e.nativeEvent.target[index]);
+      console.log("Status id: " + e.nativeEvent.target[index].id);
       let { note } = this.state;
       note.callLog.status.lastStatus = value;
       this.setState({ note });
@@ -173,9 +175,7 @@ class CallLogEdit extends Component {
     e.preventDefault();
     let { note } = this.state;
     note.callLog.status.lastStatus = null;
-    const { orgId } = this.state;
-    const { contactId } = this.state;
-    const { lastStatusId } = this.state;
+    const { orgId, lastStatusId, contactId } = this.state;
     let headerEntries = "";
     let postId = "";
 
@@ -395,6 +395,7 @@ class CallLogEdit extends Component {
           <FormGroup>
             <Label for="noteEntry">Call Log Comments</Label>
             <Input
+              cols="50"
               type="textarea"
               name="noteEntry"
               id="noteEntry"
@@ -416,9 +417,6 @@ class CallLogEdit extends Component {
     } else {
       statusOptions = "";
     }
-
-    //Set required for Org Status field if new form
-    let statusRequireCheck = callLog.callId ? "required" : null;
 
     return (
       <div>
@@ -510,14 +508,16 @@ class CallLogEdit extends Component {
                   Org. Status <span className="required">*</span>
                 </Label>
                 <Input
-                  {...statusRequireCheck}
+                  required
                   type="select"
                   name="lastStatus"
                   id="lastStatus"
                   value={callLog.status.lastStatus || ""}
                   onChange={this.handleChange}
                   autoComplete="lastStatus"
+                  placeholder="Select status..."
                 >
+                  <option></option>
                   {statusOptions}
                 </Input>
               </FormGroup>

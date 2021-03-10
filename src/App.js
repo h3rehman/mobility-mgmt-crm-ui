@@ -13,6 +13,7 @@ import EventEdit from "./EventEdit";
 import EventRead from "./EventRead";
 import MyCallLogs from "./MyCallLogs";
 import CallLogEdit from "./CallLogEdit";
+import ContactList from "./ContactList";
 
 class App extends Component {
   render() {
@@ -30,6 +31,7 @@ class App extends Component {
             <Route path="/events/:id" component={EventEdit} />
             <Route path="/event/read/:id" component={EventRead} />
             <Route path="/callLog/:id" component={CallLogEdit} />
+            <Route path="/contacts" exact={true} component={ContactList} />
             <Route
               path="/callLogs/myLogs"
               exact={true}

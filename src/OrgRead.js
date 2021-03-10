@@ -515,7 +515,11 @@ class OrgRead extends Component {
         </Form>
       );
     } else {
-      noteForm = <Button onClick={() => this.newNoteForm()}>Add Note</Button>;
+      noteForm = (
+        <Button size="sm" onClick={() => this.newNoteForm()}>
+          Add Org. Note
+        </Button>
+      );
     }
 
     const newCallLogButton = (
@@ -656,7 +660,11 @@ class OrgRead extends Component {
       </div>
     ) : (
       <div>
-        <Button size="sm" onClick={() => this.enableCallLogView()}>
+        <Button
+          color="primary"
+          size="sm"
+          onClick={() => this.enableCallLogView()}
+        >
           View Call Logs
         </Button>
       </div>

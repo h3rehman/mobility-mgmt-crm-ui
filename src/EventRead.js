@@ -1,6 +1,17 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { Button, Container, ButtonGroup, Table } from "reactstrap";
+import {
+  Button,
+  Container,
+  ButtonGroup,
+  Table,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+} from "reactstrap";
+import EditableLabel from "react-inline-editing";
+import DeleteIcon from "@material-ui/icons/Delete";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
@@ -28,14 +39,40 @@ class EventRead extends Component {
     orgNames: {},
   };
 
+  emptyNote = {
+    noteId: null,
+    noteEntry: "",
+    createDate: null,
+    lastModifiedDate: null,
+  };
+
+  updatedNote = {
+    noteId: null,
+    noteEntry: "",
+  };
+
+  focusedNoteId = null;
+
   constructor(props) {
     super(props);
     const { cookies } = props;
     this.state = {
       event: this.emptyEvent,
+      eventNotes: [],
+      noteObj: this.emptyNote,
+      noteFormCheck: false,
+      emptyNoteAlert: false,
+      newNoteAlert: false,
+      noteUpdateAlert: false,
+      noteEditMode: false,
       csrfToken: cookies.get("XSRF-TOKEN"),
       eventJoined: false,
     };
+    this.handleNoteSubmit = this.handleNoteSubmit.bind(this);
+    this.handleNoteChange = this.handleNoteChange.bind(this);
+    this._handleFocusOut = this._handleFocusOut.bind(this);
+    this.handleNoteEditClick = this.handleNoteEditClick.bind(this);
+    this.deleteNote = this.deleteNote.bind(this);
   }
 
   async componentDidMount() {
@@ -51,7 +88,13 @@ class EventRead extends Component {
         credentials: "include",
       })
     ).json();
-    this.setState({ eventJoined: eveJoined });
+
+    const fetchedNotes = await (
+      await fetch(`/api/event/notes/${this.props.match.params.id}`, {
+        credentials: "include",
+      })
+    ).json();
+    this.setState({ eventNotes: fetchedNotes, eventJoined: eveJoined });
   }
 
   async joinEvent() {
@@ -87,8 +130,129 @@ class EventRead extends Component {
     window.location.href = "/event/read/" + eventId;
   }
 
+  async handleNoteSubmit(e) {
+    e.preventDefault();
+    const { noteObj, event } = this.state;
+
+    if (noteObj.noteEntry === "") {
+      //Empty field alert
+      this.setState({ emptyNoteAlert: true });
+      window.setTimeout(() => {
+        this.setState({ emptyNoteAlert: false });
+      }, 4000);
+    } else {
+      await fetch(`/api/event/newNote/${event.eventId}`, {
+        method: "POST",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(noteObj),
+      }).then((response) => {
+        let headerEntries = response.headers.entries();
+        for (var pair of headerEntries) {
+          if (pair[0] === "location") {
+            let loc = pair[1].toString();
+            let newNoteId = loc.split("/").pop();
+            noteObj.noteId = newNoteId;
+            noteObj.createDate = new Date();
+            noteObj.lastModifiedDate = new Date();
+            break;
+          }
+        }
+        let updatedEventNotes = [...this.state.eventNotes];
+        updatedEventNotes.push(noteObj);
+        this.setState({ newNoteAlert: true });
+        window.setTimeout(() => {
+          this.setState({ newNoteAlert: false });
+        }, 4000);
+        this.setState({ eventNotes: updatedEventNotes });
+        this.setState({ noteFormCheck: false, noteObj: this.emptyNote });
+      });
+    }
+  }
+
+  handleNoteChange(event) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+    let newNoteObj = { ...this.state.noteObj };
+    newNoteObj[name] = value;
+    this.setState({ noteObj: newNoteObj });
+  }
+
+  async newNoteForm() {
+    await this.setState({ noteFormCheck: true });
+  }
+
+  _handleFocusOut(text) {
+    this.updatedNote.noteEntry = text;
+  }
+
+  handleNoteEditClick(noteId) {
+    this.focusedNoteId = noteId;
+    this.setState({ noteEditMode: true });
+  }
+
+  async updateNote(noteId) {
+    this.updatedNote.noteId = noteId;
+    await fetch(`/api/editNote/${noteId}`, {
+      method: "PUT",
+      headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(this.updatedNote),
+    }).then(() => {
+      //Alert Note updated
+      this.setState({ noteUpdateAlert: true });
+      this.updatedNote = this.emptyNote;
+      window.setTimeout(() => {
+        this.setState({ noteUpdateAlert: false });
+      }, 4000);
+      this.setState({ noteEditMode: false });
+      this.focusedNoteId = null;
+    });
+  }
+
+  async deleteNote(noteId) {
+    await fetch(`/api/deleteNote/${noteId}`, {
+      method: "DELETE",
+      headers: {
+        "X-XSRF-TOKEN": this.state.csrfToken,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    }).then(() => {
+      let updatedEventNotes = [...this.state.eventNotes].filter(
+        (i) => i.noteId !== noteId
+      );
+      this.setState({ eventNotes: updatedEventNotes });
+    });
+  }
+
   render() {
-    const { event } = this.state;
+    const {
+      event,
+      eventNotes,
+      noteFormCheck,
+      emptyNoteAlert,
+      newNoteAlert,
+      noteUpdateAlert,
+      noteEditMode,
+    } = this.state;
+
+    const dismissEmtpyNoteAlert = () =>
+      this.setState({ emptyNoteAlert: false });
+    const dismissNewNoteAlert = () => this.setState({ newNoteAlert: false });
+    const dismissNoteUpdateAlert = () =>
+      this.setState({ noteUpdateAlert: false });
+
     const title = <h3>Event Details</h3>;
 
     let cd = new Date(event.startDateTime);
@@ -198,6 +362,140 @@ class EventRead extends Component {
         </p>
       );
     }
+    //Note form for new notes
+    let noteForm = null;
+    if (noteFormCheck) {
+      noteForm = (
+        <Form onSubmit={this.handleNoteSubmit}>
+          <FormGroup>
+            <Label for="noteEntry">New note</Label>
+            <Input
+              type="textarea"
+              name="noteEntry"
+              id="noteEntry"
+              onChange={this.handleNoteChange}
+            />
+          </FormGroup>
+          <FormGroup>
+            <Button size="sm" color="primary" type="submit">
+              Save Note
+            </Button>
+          </FormGroup>
+        </Form>
+      );
+    } else {
+      noteForm = (
+        <Button size="sm" onClick={() => this.newNoteForm()}>
+          Add Event Note
+        </Button>
+      );
+    }
+
+    //Event Notes table
+    let notes = null;
+    if (eventNotes.length > 0) {
+      const noteList = eventNotes.map((note) => {
+        let lmd = new Date(note.lastModifiedDate);
+        let cd = new Date(note.createDate);
+        return (
+          <tr key={note.noteId}>
+            {/* <td style={{ whiteSpace: "nowrap" }}>{note.noteEntry}</td> */}
+            <td style={{ whiteSpace: "nowrap" }}>
+              <EditableLabel
+                text={note.noteEntry}
+                labelClassName={`note-label-${note.noteId}`}
+                inputClassName={`note-class-${note.noteId}`}
+                inputWidth="500px"
+                inputHeight="30px"
+                inputMaxLength="100"
+                labelFontWeight="normal"
+                inputFontWeight="bold"
+                onFocus={() => this.handleNoteEditClick(note.noteId)}
+                onFocusOut={this._handleFocusOut}
+              />
+            </td>
+            <td>
+              {cd.toLocaleDateString()}{" "}
+              {cd.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </td>
+            <td>
+              {note.createdByFirstName} {note.createdByLastName}
+            </td>
+            <td>
+              {lmd.toLocaleDateString()}{" "}
+              {lmd.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </td>
+            <td>
+              {note.lastModifiedByFirstName} {note.lastModifiedByLastName}
+            </td>
+            <td>
+              <ButtonGroup>
+                <Button
+                  style={{
+                    display:
+                      note.noteId === this.focusedNoteId && noteEditMode
+                        ? "block"
+                        : "none",
+                  }}
+                  size="sm"
+                  color="primary"
+                  onClick={() => this.updateNote(note.noteId)}
+                >
+                  Update
+                </Button>{" "}
+                <DeleteIcon
+                  className="delete-icon"
+                  color="action"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "This will permanently delete this note. Are you sure?"
+                      )
+                    )
+                      this.deleteNote(note.noteId);
+                  }}
+                />
+              </ButtonGroup>
+            </td>
+          </tr>
+        );
+      });
+      notes = (
+        <div>
+          <h6>Note(s) for {event.eventName}</h6>
+          <Table responsive className="small" bordered hover>
+            <thead>
+              <tr>
+                <th width="44%">
+                  Comments{" "}
+                  <span className="mono-font">(Click on note to edit)</span>
+                </th>
+                <th width="5%">Date Created</th>
+                <th width="13%">Created by</th>
+                <th width="5%">Last modified</th>
+                <th width="13%">Last modified by</th>
+                <th width="20%">Action</th>
+              </tr>
+            </thead>
+            <tbody>{noteList}</tbody>
+          </Table>
+        </div>
+      );
+    } else {
+      notes = (
+        <p>
+          <h6>
+            <i>Add Comments.</i>
+          </h6>
+        </p>
+      );
+    }
 
     return (
       <div>
@@ -278,7 +576,7 @@ class EventRead extends Component {
           <div>{orgs}</div>
           <div>{presenters}</div>
 
-          <div>
+          <div className="headLineSpace">
             {this.state.eventJoined ? (
               <Button
                 size="sm"
@@ -292,6 +590,10 @@ class EventRead extends Component {
                 <b>Join Event</b>
               </Button>
             )}
+          </div>
+          <div>
+            <div className="paraSpace">{noteForm}</div>
+            <div className="paraSpace">{notes}</div>
           </div>
           <p>&nbsp;</p>
           <p>&nbsp;</p>
