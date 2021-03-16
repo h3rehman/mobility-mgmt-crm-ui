@@ -56,6 +56,8 @@ class CallLogEdit extends Component {
       noteFormCheck: false,
       logUpdateAlert: false,
       newLogAlert: false,
+      orgMissingAlert: false,
+      emptyNoteAlert: false,
       orgButton: "none",
       contactButton: "none",
       statusButton: "none",
@@ -157,8 +159,6 @@ class CallLogEdit extends Component {
     } else if (name === "lastStatus") {
       var index = e.nativeEvent.target.selectedIndex;
       this.setState({ lastStatusId: e.nativeEvent.target[index].id });
-      console.log("Last Status set: " + e.nativeEvent.target[index]);
-      console.log("Status id: " + e.nativeEvent.target[index].id);
       let { note } = this.state;
       note.callLog.status.lastStatus = value;
       this.setState({ note });
@@ -170,45 +170,49 @@ class CallLogEdit extends Component {
     let { note } = this.state;
     note.callLog.status.lastStatus = null;
     const { orgId, lastStatusId, contactId } = this.state;
-    let headerEntries = "";
-    let postId = "";
-    console.log("Hit save...!");
-    await fetch(`/api/callLogChange/${orgId}/${contactId}/${lastStatusId}`, {
-      method: note.callLog.callId ? "PUT" : "POST",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(note),
-    }).then((response) => {
-      headerEntries = response.headers.entries();
-    });
+    if (orgId !== "-1" && note.noteEntry !== "") {
+      let headerEntries = "";
+      let postId = "";
+      await fetch(`/api/callLogChange/${orgId}/${contactId}/${lastStatusId}`, {
+        method: note.callLog.callId ? "PUT" : "POST",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(note),
+      }).then((response) => {
+        headerEntries = response.headers.entries();
+      });
 
-    if (note.callLog.callId) {
-      //For PUT Calls
-      this.setState({ logUpdateAlert: true });
-      window.scrollTo(0, 0);
-      window.setTimeout(() => {
-        this.setState({ logUpdateAlert: false });
-      }, 1000);
-      await new Promise((r) => setTimeout(r, 1000));
-      window.location.href = "/callLog/" + note.callLog.callId;
-    } else {
-      //For POST Calls
-      this.setState({ newLogAlert: true });
-      window.scrollTo(0, 0);
-      await new Promise((r) => setTimeout(r, 2000));
-      for (var pair of headerEntries) {
-        if (pair[0] === "location") {
-          let loc = pair[1].toString();
-          postId = loc.split("/").pop();
-          console.log("Post Id: " + postId);
-          window.location.href = "/callLog/" + postId;
-          break;
+      if (note.callLog.callId) {
+        //For PUT Calls
+        this.setState({ logUpdateAlert: true });
+        window.scrollTo(0, 0);
+        window.setTimeout(() => {
+          this.setState({ logUpdateAlert: false });
+        }, 1000);
+        await new Promise((r) => setTimeout(r, 1000));
+        window.location.href = "/callLog/" + note.callLog.callId;
+      } else {
+        //For POST Calls
+        this.setState({ newLogAlert: true });
+        window.scrollTo(0, 0);
+        await new Promise((r) => setTimeout(r, 2000));
+        for (var pair of headerEntries) {
+          if (pair[0] === "location") {
+            let loc = pair[1].toString();
+            postId = loc.split("/").pop();
+            window.location.href = "/callLog/" + postId;
+            break;
+          }
         }
       }
+    } else if (orgId === "-1") {
+      this.setState({ orgMissingAlert: true });
+    } else if (note.noteEntry === "") {
+      this.setState({ emptyNoteAlert: true });
     }
   }
 
@@ -227,8 +231,6 @@ class CallLogEdit extends Component {
     const { orgContacts } = this.state;
     if (orgContacts.length === 0) {
       const { orgId } = this.state;
-      console.log("OrgId: " + orgId);
-      console.log("State OrgId: " + this.state.note.callLog.org.orgId);
       const exOrgContacts = await (
         await fetch(`/api/orgContacts/${orgId}`, {
           credentials: "include",
@@ -258,6 +260,8 @@ class CallLogEdit extends Component {
       orgStatusTypes,
       logUpdateAlert,
       newLogAlert,
+      orgMissingAlert,
+      emptyNoteAlert,
       noteFormCheck,
       keepContact,
       keepOrg,
@@ -280,6 +284,21 @@ class CallLogEdit extends Component {
       }
       this.setState({ newLogAlert: false });
     };
+
+    const dismissOrgMissingAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ orgMissingAlert: false });
+    };
+
+    const dismissEmptyNoteAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ emptyNoteAlert: false });
+    };
+
     const title = (
       <h4 className="paraSpace">
         {callLog.callId ? "Call Log" : "Add Call Log"}
@@ -370,9 +389,9 @@ class CallLogEdit extends Component {
           <div className="small-font">
             <span className="field">
               <span className="larger-font">
-                <b>Note: </b>
+                <b>Call Log Comment: </b>
               </span>
-              <span className="mono-font">(Click below to edit note)</span>
+              <span className="mono-font">(Click below to edit comment)</span>
             </span>{" "}
             <EditableLabel
               text={note.noteEntry}
@@ -424,8 +443,7 @@ class CallLogEdit extends Component {
     }
 
     //Set required for Org Status field if new form
-    let statusRequireCheck = callLog.callId ? "required" : null;
-
+    let statusRequireCheck = callLog.callId ? null : "required";
     return (
       <div>
         <AppNavbar />
@@ -442,6 +460,36 @@ class CallLogEdit extends Component {
         )}
         <Container>
           {title}
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={orgMissingAlert}
+            autoHideDuration={4000}
+            onClose={dismissOrgMissingAlert}
+          >
+            <Alert
+              variant="outlined"
+              severity="warning"
+              className="warning-color"
+              onClose={dismissOrgMissingAlert}
+            >
+              <strong>Org. cannot be empty.</strong>
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={emptyNoteAlert}
+            autoHideDuration={4000}
+            onClose={dismissEmptyNoteAlert}
+          >
+            <Alert
+              variant="outlined"
+              severity="warning"
+              className="warning-color"
+              onClose={dismissEmptyNoteAlert}
+            >
+              <strong>Call Log Comment cannot be empty.</strong>
+            </Alert>
+          </Snackbar>
           <Snackbar
             anchorOrigin={{ vertical: "top", horizontal: "center" }}
             open={logUpdateAlert}
@@ -532,7 +580,7 @@ class CallLogEdit extends Component {
                   Org. Status <span className="required">*</span>
                 </Label>
                 <Input
-                  {...statusRequireCheck}
+                  required={statusRequireCheck}
                   type="select"
                   name="lastStatus"
                   id="lastStatus"
