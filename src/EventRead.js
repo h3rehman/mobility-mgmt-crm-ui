@@ -12,6 +12,8 @@ import {
 } from "reactstrap";
 import EditableLabel from "react-inline-editing";
 import DeleteIcon from "@material-ui/icons/Delete";
+import Alert from "@material-ui/lab/Alert";
+import Snackbar from "@material-ui/core/Snackbar";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
@@ -137,9 +139,9 @@ class EventRead extends Component {
     if (noteObj.noteEntry === "") {
       //Empty field alert
       this.setState({ emptyNoteAlert: true });
-      window.setTimeout(() => {
-        this.setState({ emptyNoteAlert: false });
-      }, 4000);
+      // window.setTimeout(() => {
+      //   this.setState({ emptyNoteAlert: false });
+      // }, 4000);
     } else {
       await fetch(`/api/event/newNote/${event.eventId}`, {
         method: "POST",
@@ -247,11 +249,24 @@ class EventRead extends Component {
       noteEditMode,
     } = this.state;
 
-    const dismissEmtpyNoteAlert = () =>
+    const dismissEmtpyNoteAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
       this.setState({ emptyNoteAlert: false });
-    const dismissNewNoteAlert = () => this.setState({ newNoteAlert: false });
-    const dismissNoteUpdateAlert = () =>
+    };
+    const dismissNewNoteAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ newNoteAlert: false });
+    };
+    const dismissNoteUpdateAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
       this.setState({ noteUpdateAlert: false });
+    };
 
     const title = <h3>Event Details</h3>;
 
@@ -590,6 +605,57 @@ class EventRead extends Component {
                 <b>Join Event</b>
               </Button>
             )}
+          </div>
+          <div>
+            <Snackbar
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+              open={newNoteAlert}
+              autoHideDuration={6000}
+              onClose={dismissNewNoteAlert}
+            >
+              <Alert
+                variant="outlined"
+                severity="success"
+                className="success-color"
+                onClose={dismissNewNoteAlert}
+              >
+                <strong>A new note is created.</strong>
+              </Alert>
+            </Snackbar>
+          </div>
+          <div>
+            <Snackbar
+              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+              open={emptyNoteAlert}
+              autoHideDuration={6000}
+              onClose={dismissEmtpyNoteAlert}
+            >
+              <Alert
+                variant="outlined"
+                severity="warning"
+                className="warning-color"
+                onClose={dismissEmtpyNoteAlert}
+              >
+                <strong>Note cannot be empty!</strong>
+              </Alert>
+            </Snackbar>
+          </div>
+          <div>
+            <Snackbar
+              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+              open={noteUpdateAlert}
+              autoHideDuration={6000}
+              onClose={dismissNoteUpdateAlert}
+            >
+              <Alert
+                variant="outlined"
+                severity="info"
+                className="info-color"
+                onClose={dismissNoteUpdateAlert}
+              >
+                <strong>Note is updated.</strong>
+              </Alert>
+            </Snackbar>
           </div>
           <div>
             <div className="paraSpace">{noteForm}</div>

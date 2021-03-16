@@ -9,10 +9,11 @@ import {
   FormGroup,
   Input,
   Label,
-  Alert,
 } from "reactstrap";
 import EditableLabel from "react-inline-editing";
 import DeleteIcon from "@material-ui/icons/Delete";
+import Alert from "@material-ui/lab/Alert";
+import Snackbar from "@material-ui/core/Snackbar";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
@@ -172,7 +173,7 @@ class OrgRead extends Component {
       this.updatedNote = this.emptyNote;
       window.setTimeout(() => {
         this.setState({ noteUpdateAlert: false });
-      }, 4000);
+      }, 5000);
       this.setState({ noteEditMode: false });
       this.focusedNoteId = null;
     });
@@ -254,20 +255,34 @@ class OrgRead extends Component {
   }
 
   render() {
-    const { item } = this.state;
-    const { orgNotes } = this.state;
-    const { emptyNoteAlert } = this.state;
-    const { newNoteAlert } = this.state;
-    const { noteUpdateAlert } = this.state;
-    const dismissEmtpyNoteAlert = () =>
+    const {
+      item,
+      orgNotes,
+      emptyNoteAlert,
+      newNoteAlert,
+      noteUpdateAlert,
+    } = this.state;
+    const dismissEmtpyNoteAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
       this.setState({ emptyNoteAlert: false });
-    const dismissNewNoteAlert = () => this.setState({ newNoteAlert: false });
-    const dismissNoteUpdateAlert = () =>
+    };
+    const dismissNewNoteAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ newNoteAlert: false });
+    };
+    const dismissNoteUpdateAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
       this.setState({ noteUpdateAlert: false });
-    const { noteEditMode } = this.state;
+    };
+
+    const { noteEditMode, callLogsViewCheck, callLogList } = this.state;
     let { noteFormCheck } = this.state;
-    const { callLogsViewCheck } = this.state;
-    const { callLogList } = this.state;
 
     const title = <h4>Organization Details</h4>;
 
@@ -723,47 +738,67 @@ class OrgRead extends Component {
           </div>
           <div>{contacts}</div>
           <React.Fragment>
-            <p>
-              <div>{upEvents}</div>
-            </p>
+            <div className="paraSpace">{upEvents}</div>
           </React.Fragment>
           <React.Fragment>
-            <p>
-              <div>{pastEvents}</div>
-            </p>
+            <div className="paraSpace">{pastEvents}</div>
           </React.Fragment>
           <Container style={{ backgroundColor: grey }}>
             <div className="paraSpace">{newCallLogButton}</div>
             <div className="headLineSpace">{callLogsView}</div>
           </Container>
           <div>
-            <Alert
-              color="success"
-              isOpen={newNoteAlert}
-              toggle={dismissNewNoteAlert}
+            <Snackbar
+              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+              open={newNoteAlert}
+              autoHideDuration={6000}
+              onClose={dismissNewNoteAlert}
             >
-              A new note is created.
-            </Alert>
+              <Alert
+                variant="outlined"
+                severity="success"
+                className="success-color"
+                onClose={dismissNewNoteAlert}
+              >
+                <strong>A new note is created.</strong>
+              </Alert>
+            </Snackbar>
           </div>
           <div>
-            <Alert
-              color="warning"
-              isOpen={emptyNoteAlert}
-              toggle={dismissEmtpyNoteAlert}
+            <Snackbar
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+              open={emptyNoteAlert}
+              autoHideDuration={6000}
+              onClose={dismissEmtpyNoteAlert}
             >
-              Note cannot be empty!
-            </Alert>
+              <Alert
+                variant="outlined"
+                severity="warning"
+                className="warning-color"
+                onClose={dismissEmtpyNoteAlert}
+              >
+                <strong>Note cannot be empty!</strong>
+              </Alert>
+            </Snackbar>
           </div>
           <div>{noteForm}</div>
           <React.Fragment>
             <div>
-              <Alert
-                color="info"
-                isOpen={noteUpdateAlert}
-                toggle={dismissNoteUpdateAlert}
+              <Snackbar
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                open={noteUpdateAlert}
+                autoHideDuration={6000}
+                onClose={dismissNoteUpdateAlert}
               >
-                Note is updated.
-              </Alert>
+                <Alert
+                  variant="outlined"
+                  severity="info"
+                  className="info-color"
+                  onClose={dismissNoteUpdateAlert}
+                >
+                  <strong>Note is updated.</strong>
+                </Alert>
+              </Snackbar>
             </div>
             <div>{notes}</div>
           </React.Fragment>

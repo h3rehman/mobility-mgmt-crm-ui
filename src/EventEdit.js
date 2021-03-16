@@ -10,11 +10,12 @@ import {
   ButtonGroup,
   Table,
   CustomInput,
-  Alert,
 } from "reactstrap";
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import { Switch, FormControlLabel } from "@material-ui/core";
+import Alert from "@material-ui/lab/Alert";
+import Snackbar from "@material-ui/core/Snackbar";
 import DateFnsUtils from "@date-io/date-fns";
 import { DateTimePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import AppNavbar from "./AppNavbar";
@@ -324,17 +325,35 @@ class EventEdit extends Component {
   }
 
   render() {
-    const { event, lastStatus, eventStatusTypes, eventTypes } = this.state;
-    const { allAudienceTypes } = this.state;
-    const { allOrgNames } = this.state;
-    const { eventUpdateAlert } = this.state;
-    const { newEventAlert } = this.state;
-    const { audienceTypeDeleteAlert } = this.state;
-    const dismissEventUpdateAlert = () =>
+    const {
+      event,
+      lastStatus,
+      eventStatusTypes,
+      eventTypes,
+      allAudienceTypes,
+      allOrgNames,
+      eventUpdateAlert,
+      newEventAlert,
+      audienceTypeDeleteAlert,
+    } = this.state;
+    const dismissEventUpdateAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
       this.setState({ eventUpdateAlert: false });
-    const dismissNewEveAlert = () => this.setState({ newEventAlert: false });
-    const dismissAudienceTypeDeleteAlert = () =>
+    };
+    const dismissNewEveAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ newEventAlert: false });
+    };
+    const dismissAudienceTypeDeleteAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
       this.setState({ audienceTypeDeleteAlert: false });
+    };
     const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
 
     let joinEventSwitch = "";
@@ -485,20 +504,37 @@ class EventEdit extends Component {
         )}
         <Container>
           {title}
-          <Alert
-            color="info"
-            isOpen={eventUpdateAlert}
-            toggle={dismissEventUpdateAlert}
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={eventUpdateAlert}
+            autoHideDuration={6000}
+            onClose={dismissEventUpdateAlert}
           >
-            Event has been updated!
-          </Alert>
-          <Alert
-            color="success"
-            isOpen={newEventAlert}
-            toggle={dismissNewEveAlert}
+            <Alert
+              variant="outlined"
+              severity="info"
+              className="info-color"
+              onClose={dismissEventUpdateAlert}
+            >
+              <strong>Event has been updated!</strong>
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={newEventAlert}
+            autoHideDuration={3500}
+            onClose={dismissNewEveAlert}
           >
-            New Event is created! PLEASE WAIT FOR THE PAGE TO REFRESH!
-          </Alert>
+            <Alert
+              variant="outlined"
+              severity="success"
+              className="success-color"
+              onClose={dismissNewEveAlert}
+            >
+              New Event is created!{" "}
+              <strong>PLEASE WAIT FOR THE PAGE TO REFRESH!</strong>
+            </Alert>
+          </Snackbar>
           <Form onSubmit={this.handleSubmit}>
             <FormGroup>
               <Label for="eventName">Event Name</Label>
@@ -640,13 +676,21 @@ class EventEdit extends Component {
             <div>
               <div>
                 <div className="smallerSpace larger-font">Audience Types</div>
-                <Alert
-                  color="info"
-                  isOpen={audienceTypeDeleteAlert}
-                  toggle={dismissAudienceTypeDeleteAlert}
+                <Snackbar
+                  anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                  open={audienceTypeDeleteAlert}
+                  autoHideDuration={6000}
+                  onClose={dismissAudienceTypeDeleteAlert}
                 >
-                  Audience Type has been removed!
-                </Alert>
+                  <Alert
+                    variant="outlined"
+                    severity="info"
+                    className="info-color"
+                    onClose={dismissAudienceTypeDeleteAlert}
+                  >
+                    <strong>Audience Type has been removed!</strong>
+                  </Alert>
+                </Snackbar>
               </div>
               <div>
                 <FormGroup>{audienceCheckBoxes}</FormGroup>

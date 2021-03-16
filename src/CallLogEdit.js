@@ -1,16 +1,10 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import {
-  Button,
-  Container,
-  Form,
-  FormGroup,
-  Input,
-  Label,
-  Alert,
-} from "reactstrap";
+import { Button, Container, Form, FormGroup, Input, Label } from "reactstrap";
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import Alert from "@material-ui/lab/Alert";
+import Snackbar from "@material-ui/core/Snackbar";
 import AppNavbar from "./AppNavbar";
 import EditableLabel from "react-inline-editing";
 import { instanceOf } from "prop-types";
@@ -178,7 +172,7 @@ class CallLogEdit extends Component {
     const { orgId, lastStatusId, contactId } = this.state;
     let headerEntries = "";
     let postId = "";
-
+    console.log("Hit save...!");
     await fetch(`/api/callLogChange/${orgId}/${contactId}/${lastStatusId}`, {
       method: note.callLog.callId ? "PUT" : "POST",
       headers: {
@@ -257,24 +251,35 @@ class CallLogEdit extends Component {
   }
 
   render() {
-    const { note } = this.state;
+    const {
+      note,
+      allOrgNames,
+      orgContacts,
+      orgStatusTypes,
+      logUpdateAlert,
+      newLogAlert,
+      noteFormCheck,
+      keepContact,
+      keepOrg,
+      keepStatus,
+      orgButton,
+      contactButton,
+      statusButton,
+    } = this.state;
     const callLog = note.callLog;
-    const { allOrgNames } = this.state;
-    const { orgContacts } = this.state;
-    const { orgStatusTypes } = this.state;
-    const { logUpdateAlert } = this.state;
-    const { newLogAlert } = this.state;
-    const { noteFormCheck } = this.state;
-    const { keepContact } = this.state;
-    const { keepOrg } = this.state;
-    const { keepStatus } = this.state;
-    const { orgButton } = this.state;
-    const { contactButton } = this.state;
-    const { statusButton } = this.state;
     const noteMaxLength = 100;
-    const dismissLogUpdateAlert = () =>
+    const dismissLogUpdateAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
       this.setState({ logUpdateAlert: false });
-    const dismissNewLogAlert = () => this.setState({ newLogAlert: false });
+    };
+    const dismissNewLogAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ newLogAlert: false });
+    };
     const title = (
       <h4 className="paraSpace">
         {callLog.callId ? "Call Log" : "Add Call Log"}
@@ -418,6 +423,9 @@ class CallLogEdit extends Component {
       statusOptions = "";
     }
 
+    //Set required for Org Status field if new form
+    let statusRequireCheck = callLog.callId ? "required" : null;
+
     return (
       <div>
         <AppNavbar />
@@ -434,21 +442,37 @@ class CallLogEdit extends Component {
         )}
         <Container>
           {title}
-          <Alert
-            color="info"
-            isOpen={logUpdateAlert}
-            toggle={dismissLogUpdateAlert}
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={logUpdateAlert}
+            autoHideDuration={6000}
+            onClose={dismissLogUpdateAlert}
           >
-            Call Log has been updated!
-          </Alert>
-          <Alert
-            color="success"
-            isOpen={newLogAlert}
-            toggle={dismissNewLogAlert}
+            <Alert
+              variant="outlined"
+              severity="info"
+              className="info-color"
+              onClose={dismissLogUpdateAlert}
+            >
+              <strong>Call Log has been updated!</strong>
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={newLogAlert}
+            autoHideDuration={6000}
+            onClose={dismissNewLogAlert}
           >
-            New Call Log is created! PLEASE WAIT FOR THE PAGE TO REFRESH!
-          </Alert>
-
+            <Alert
+              variant="outlined"
+              severity="success"
+              className="success-color"
+              onClose={dismissNewLogAlert}
+            >
+              New Call Log is created!{" "}
+              <strong>PLEASE WAIT FOR THE PAGE TO REFRESH!</strong>
+            </Alert>
+          </Snackbar>
           <Form onSubmit={this.handleSubmit}>
             <div className="row paraSpace">
               <div style={{ display: keepOrg }}>
@@ -508,7 +532,7 @@ class CallLogEdit extends Component {
                   Org. Status <span className="required">*</span>
                 </Label>
                 <Input
-                  required
+                  {...statusRequireCheck}
                   type="select"
                   name="lastStatus"
                   id="lastStatus"
