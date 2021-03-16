@@ -9,9 +9,10 @@ import {
   Label,
   ButtonGroup,
   Table,
-  Alert,
 } from "reactstrap";
 import AppNavbar from "./AppNavbar";
+import Alert from "@material-ui/lab/Alert";
+import Snackbar from "@material-ui/core/Snackbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
 
@@ -196,14 +197,26 @@ class OrgEdit extends Component {
 
   render() {
     const { item } = this.state;
-    const { conObj, counties } = this.state;
-    const { contactFormCheck } = this.state;
-    const { addContactButton } = this.state;
-    const { orgUpdateAlert } = this.state;
-    const { newOrgAlert } = this.state;
-    const dismissOrgUpdateAlert = () =>
+    const {
+      conObj,
+      counties,
+      contactFormCheck,
+      addContactButton,
+      orgUpdateAlert,
+      newOrgAlert,
+    } = this.state;
+    const dismissOrgUpdateAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
       this.setState({ orgUpdateAlert: false });
-    const dismissNewOrgAlert = () => this.setState({ newOrgAlert: false });
+    };
+    const dismissNewOrgAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ newOrgAlert: false });
+    };
 
     const title = (
       <h3>{item.orgId ? "Edit Organization" : "Add Organization"}</h3>
@@ -551,20 +564,37 @@ class OrgEdit extends Component {
         )}
         <Container>
           {title}
-          <Alert
-            color="info"
-            isOpen={orgUpdateAlert}
-            toggle={dismissOrgUpdateAlert}
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={orgUpdateAlert}
+            autoHideDuration={6000}
+            onClose={dismissOrgUpdateAlert}
           >
-            {item.orgname} has been updated!
-          </Alert>
-          <Alert
-            color="success"
-            isOpen={newOrgAlert}
-            toggle={dismissNewOrgAlert}
+            <Alert
+              variant="outlined"
+              severity="info"
+              className="info-color"
+              onClose={dismissOrgUpdateAlert}
+            >
+              <strong>{item.orgname} has been updated!</strong>
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={newOrgAlert}
+            autoHideDuration={3500}
+            onClose={dismissNewOrgAlert}
           >
-            {item.orgname} is created! PLEASE WAIT FOR THE PAGE TO REFRESH!
-          </Alert>
+            <Alert
+              variant="outlined"
+              severity="success"
+              className="success-color"
+              onClose={dismissNewOrgAlert}
+            >
+              {item.orgname} is created!{" "}
+              <strong>PLEASE WAIT FOR THE PAGE TO REFRESH!</strong>
+            </Alert>
+          </Snackbar>
           <div className="paraSpace">
             <Form onSubmit={this.handleSubmit}>
               <div className="row">

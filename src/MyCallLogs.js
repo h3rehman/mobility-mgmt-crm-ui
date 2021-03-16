@@ -98,7 +98,7 @@ class MyCallLogs extends Component {
           <h4>My Call Logs</h4>
           <Table className="mt-4">
             <thead>
-              <tr>
+              <tr className="small-font">
                 <th width="20%">Org. Name</th>
                 <th width="10%">Status set</th>
                 <th width="15%">Created by</th>

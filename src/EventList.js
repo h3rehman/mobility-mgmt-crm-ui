@@ -480,7 +480,7 @@ class EventList extends Component {
           <div className="row fiter-spacing">
             <div className="paraSpace">
               <div>
-                <h5>Event Type</h5>
+                <h5>Event Types</h5>
                 {eventTypesCheckBoxes}
               </div>
             </div>

@@ -197,3 +197,20 @@
   padding-left: 1rem;
   padding-right: 1rem;
 }
+/*Alert*/
+.warning-color {
+  background-color: rgb(255, 244, 229) !important;
+  color: black !important;
+}
+.error-color {
+  background-color: rgb(253, 236, 234) !important;
+  color: black !important;
+}
+.info-color {
+  background-color: rgb(232, 244, 253) !important;
+  color: black !important;
+}
+.success-color {
+  background-color: rgb(237, 247, 237) !important;
+  color: black !important;
+}

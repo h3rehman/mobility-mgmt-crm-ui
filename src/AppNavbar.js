@@ -111,7 +111,7 @@ class AppNavbar extends Component {
               </DropdownToggle>
               <DropdownMenu right>
                 <DropdownItem href="/callLogs/myLogs">
-                  My call logs
+                  My Call Logs
                 </DropdownItem>
                 <DropdownItem href="/myoutreach">
                   Outreach Schedule
