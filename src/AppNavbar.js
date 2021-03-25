@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import { withCookies } from "react-cookie";
 import AccountCircleOutlinedIcon from "@material-ui/icons/AccountCircleOutlined";
 import PowerSettingsNewOutlinedIcon from "@material-ui/icons/PowerSettingsNewOutlined";
+import localConfig from "./localConfig.json";
 
 class AppNavbar extends Component {
   state = {
@@ -65,11 +66,18 @@ class AppNavbar extends Component {
       new RegExp("(^| )" + csrf + "=([^;]+)")
     );
     console.log(csrfToken);
-    fetch("/api/logout", {
-      method: "POST",
-      credentials: "include",
-      headers: { "X-XSRF-TOKEN": csrfToken[2] },
-    })
+    fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        "/api/logout",
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "X-XSRF-TOKEN": csrfToken[2] },
+      }
+    )
       .then((res) => res.json())
       .then((response) => {
         this.setState({ isAuthenticated: false });

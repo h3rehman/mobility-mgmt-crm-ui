@@ -17,6 +17,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import localConfig from "./localConfig.json";
 
 class EventRead extends Component {
   static propTypes = {
@@ -79,22 +80,43 @@ class EventRead extends Component {
 
   async componentDidMount() {
     const exEvent = await (
-      await fetch(`/api/events/${this.props.match.params.id}`, {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/events/${this.props.match.params.id}`,
+        {
+          credentials: "include",
+        }
+      )
     ).json();
 
     this.setState({ event: exEvent });
     const eveJoined = await (
-      await fetch(`/api/checkPresenter/${this.props.match.params.id}`, {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/checkPresenter/${this.props.match.params.id}`,
+        {
+          credentials: "include",
+        }
+      )
     ).json();
 
     const fetchedNotes = await (
-      await fetch(`/api/event/notes/${this.props.match.params.id}`, {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/event/notes/${this.props.match.params.id}`,
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     this.setState({ eventNotes: fetchedNotes, eventJoined: eveJoined });
   }
@@ -103,30 +125,44 @@ class EventRead extends Component {
     const { event } = this.state;
     console.log("Join Event Called!");
 
-    await fetch(`/api/joinevent/${event.eventId}`, {
-      method: "PUT",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    }).then(() => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/joinevent/${event.eventId}`,
+      {
+        method: "PUT",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    ).then(() => {
       this.setState({ eventJoined: true });
     });
     window.location.href = "/event/read/" + event.eventId;
   }
 
   async removePresenter(eventId) {
-    await fetch(`/api/removePresenter/${eventId}`, {
-      method: "DELETE",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    }).then(() => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/removePresenter/${eventId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    ).then(() => {
       this.setState({ eventJoined: false });
     });
     window.location.href = "/event/read/" + eventId;
@@ -143,16 +179,23 @@ class EventRead extends Component {
       //   this.setState({ emptyNoteAlert: false });
       // }, 4000);
     } else {
-      await fetch(`/api/event/newNote/${event.eventId}`, {
-        method: "POST",
-        headers: {
-          "X-XSRF-TOKEN": this.state.csrfToken,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(noteObj),
-      }).then((response) => {
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/event/newNote/${event.eventId}`,
+        {
+          method: "POST",
+          headers: {
+            "X-XSRF-TOKEN": this.state.csrfToken,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(noteObj),
+        }
+      ).then((response) => {
         let headerEntries = response.headers.entries();
         for (var pair of headerEntries) {
           if (pair[0] === "location") {
@@ -200,16 +243,23 @@ class EventRead extends Component {
 
   async updateNote(noteId) {
     this.updatedNote.noteId = noteId;
-    await fetch(`/api/editNote/${noteId}`, {
-      method: "PUT",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(this.updatedNote),
-    }).then(() => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/editNote/${noteId}`,
+      {
+        method: "PUT",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(this.updatedNote),
+      }
+    ).then(() => {
       //Alert Note updated
       this.setState({ noteUpdateAlert: true });
       this.updatedNote = this.emptyNote;
@@ -222,15 +272,22 @@ class EventRead extends Component {
   }
 
   async deleteNote(noteId) {
-    await fetch(`/api/deleteNote/${noteId}`, {
-      method: "DELETE",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    }).then(() => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/deleteNote/${noteId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    ).then(() => {
       let updatedEventNotes = [...this.state.eventNotes].filter(
         (i) => i.noteId !== noteId
       );

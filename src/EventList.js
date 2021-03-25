@@ -23,6 +23,7 @@ import {
   CustomInput,
 } from "reactstrap";
 import { withCookies, Cookies } from "react-cookie";
+import localConfig from "./localConfig.json";
 
 class EventList extends Component {
   static propTypes = {
@@ -62,19 +63,40 @@ class EventList extends Component {
   async componentDidMount() {
     this.setState({ isLoading: true });
     //default pagination (1st page & 10 elements) and sorted by startDateTime
-    fetch("/api/events-sorted-default/0/10", { credentials: "include" })
+    fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        "/api/events-sorted-default/0/10",
+      { credentials: "include" }
+    )
       .then((response) => response.json())
       .then((data) => this.setState({ pagedEvents: data, isLoading: false }))
       .then(() => this.createPageArray());
 
     const fetchedEventTypes = await (
-      await fetch("/api/all-event-types", {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/all-event-types",
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     //load event status types
     const fetchedEventStatusTypes = await (
-      await fetch(`/api/eventStatusTypes`, { credentials: "include" })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/eventStatusTypes`,
+        { credentials: "include" }
+      )
     ).json();
     this.setState({
       eventTypes: fetchedEventTypes,
@@ -133,7 +155,11 @@ class EventList extends Component {
 
     const fetchedPage = await (
       await fetch(
-        `/api/events-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/events-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -157,7 +183,11 @@ class EventList extends Component {
 
     const fetchedPage = await (
       await fetch(
-        `/api/events-filtered-sorted/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/events-filtered-sorted/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -195,7 +225,11 @@ class EventList extends Component {
     }
     const fetchedPage = await (
       await fetch(
-        `/api/events-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/events-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -227,7 +261,11 @@ class EventList extends Component {
 
     const fetchedPage = await (
       await fetch(
-        `/api/events-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/events-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }

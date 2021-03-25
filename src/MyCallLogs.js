@@ -4,6 +4,7 @@ import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import localConfig from "./localConfig.json";
 
 class MyCallLogs extends Component {
   static propTypes = {
@@ -23,7 +24,14 @@ class MyCallLogs extends Component {
   componentDidMount() {
     this.setState({ isLoading: true });
 
-    fetch("/api/myCallLogs", { credentials: "include" })
+    fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        "/api/myCallLogs",
+      { credentials: "include" }
+    )
       .then((response) => response.json())
       .then((data) => this.setState({ callLogsArr: data, isLoading: false }));
   }

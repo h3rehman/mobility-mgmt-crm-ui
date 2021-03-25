@@ -21,6 +21,7 @@ import { DateTimePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import localConfig from "./localConfig.json";
 
 class EventEdit extends Component {
   static propTypes = {
@@ -77,9 +78,16 @@ class EventEdit extends Component {
   async componentDidMount() {
     if (this.props.match.params.id !== "new") {
       const exEvent = await (
-        await fetch(`/api/events/${this.props.match.params.id}`, {
-          credentials: "include",
-        })
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/events/${this.props.match.params.id}`,
+          {
+            credentials: "include",
+          }
+        )
       ).json();
 
       this.setState({
@@ -90,23 +98,51 @@ class EventEdit extends Component {
     const eveId =
       this.props.match.params.id === "new" ? -1 : this.props.match.params.id;
     const audiTypes = await (
-      await fetch(`/api/allAudienceWithTypeExist/${eveId}`, {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/allAudienceWithTypeExist/${eveId}`,
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     //load all Org names into this constant
     const fetchOrgs = await (
-      await fetch(`/api/allorgnames`, { credentials: "include" })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/allorgnames`,
+        { credentials: "include" }
+      )
     ).json();
     //load status types
     const fetchEventStatusTypes = await (
-      await fetch(`/api/eventStatusTypes`, { credentials: "include" })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/eventStatusTypes`,
+        { credentials: "include" }
+      )
     ).json();
     //load event types
     const fetchedEventTypes = await (
-      await fetch("/api/all-event-types", {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/all-event-types",
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     this.setState({
       allOrgNames: fetchOrgs,
@@ -120,15 +156,22 @@ class EventEdit extends Component {
     Object.filter = (obj, predicate) =>
       Object.fromEntries(Object.entries(obj).filter(predicate));
 
-    await fetch(`/api/removeOrg/${eventId}/${orgId}`, {
-      method: "DELETE",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    }).then(() => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/removeOrg/${eventId}/${orgId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    ).then(() => {
       let updatedOrgs = Object.filter(
         this.state.event.orgNames,
         ([id, name]) => id != orgId
@@ -142,15 +185,22 @@ class EventEdit extends Component {
   async deleteAudienceType(id) {
     const { event } = this.state;
     let eventId = event.eventId;
-    await fetch(`/api/deleteAudienceType/${eventId}/${id}`, {
-      method: "DELETE",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    }).then(() => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/deleteAudienceType/${eventId}/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    ).then(() => {
       this.setState({ audienceTypeDeleteAlert: true });
       window.setTimeout(() => {
         this.setState({ audienceTypeDeleteAlert: false });
@@ -283,7 +333,11 @@ class EventEdit extends Component {
     event.eventaudienceType = null;
     event.lastStatus = null;
     await fetch(
-      `/api/event/${event.eventTypeDesc}/${orgId}/${joinEve}/${lastStatus}?${audTypesQuery}`,
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/event/${event.eventTypeDesc}/${orgId}/${joinEve}/${lastStatus}?${audTypesQuery}`,
       {
         method: event.eventId ? "PUT" : "POST",
         headers: {

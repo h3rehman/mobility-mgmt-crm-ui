@@ -9,6 +9,7 @@ import AppNavbar from "./AppNavbar";
 import EditableLabel from "react-inline-editing";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import localConfig from "./localConfig.json";
 
 class CallLogEdit extends Component {
   static propTypes = {
@@ -77,9 +78,16 @@ class CallLogEdit extends Component {
   async componentDidMount() {
     if (this.props.match.params.id !== "new") {
       const exCallLogNote = await (
-        await fetch(`/api/callLog-detail/${this.props.match.params.id}`, {
-          credentials: "include",
-        })
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/callLog-detail/${this.props.match.params.id}`,
+          {
+            credentials: "include",
+          }
+        )
       ).json();
       this.setState({
         note: exCallLogNote,
@@ -97,11 +105,25 @@ class CallLogEdit extends Component {
     //load all Org names into this constant with a condition
     else {
       const fetchOrgs = await (
-        await fetch(`/api/allorgnames`, { credentials: "include" })
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/allorgnames`,
+          { credentials: "include" }
+        )
       ).json();
 
       const fetchedOrgStatusType = await (
-        await fetch(`/api/orgStatusTypes`, { credentials: "include" })
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/orgStatusTypes`,
+          { credentials: "include" }
+        )
       ).json();
 
       this.setState({
@@ -125,9 +147,16 @@ class CallLogEdit extends Component {
     this.setState({ orgId: id });
     if (id !== -1) {
       const exOrgContacts = await (
-        await fetch(`/api/orgContacts/${id}`, {
-          credentials: "include",
-        })
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/orgContacts/${id}`,
+          {
+            credentials: "include",
+          }
+        )
       ).json();
       this.setState({ orgContacts: exOrgContacts, keepContact: "block" });
       if (this.props.match.params.id === "new") {
@@ -173,16 +202,23 @@ class CallLogEdit extends Component {
     if (orgId !== "-1" && note.noteEntry !== "") {
       let headerEntries = "";
       let postId = "";
-      await fetch(`/api/callLogChange/${orgId}/${contactId}/${lastStatusId}`, {
-        method: note.callLog.callId ? "PUT" : "POST",
-        headers: {
-          "X-XSRF-TOKEN": this.state.csrfToken,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(note),
-      }).then((response) => {
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/callLogChange/${orgId}/${contactId}/${lastStatusId}`,
+        {
+          method: note.callLog.callId ? "PUT" : "POST",
+          headers: {
+            "X-XSRF-TOKEN": this.state.csrfToken,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(note),
+        }
+      ).then((response) => {
         headerEntries = response.headers.entries();
       });
 
@@ -220,7 +256,14 @@ class CallLogEdit extends Component {
     const { allOrgNames } = this.state;
     if (allOrgNames.length === 0) {
       const fetchOrgs = await (
-        await fetch(`/api/allorgnames`, { credentials: "include" })
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/allorgnames`,
+          { credentials: "include" }
+        )
       ).json();
       this.setState({ allOrgNames: fetchOrgs });
     }
@@ -232,9 +275,16 @@ class CallLogEdit extends Component {
     if (orgContacts.length === 0) {
       const { orgId } = this.state;
       const exOrgContacts = await (
-        await fetch(`/api/orgContacts/${orgId}`, {
-          credentials: "include",
-        })
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/orgContacts/${orgId}`,
+          {
+            credentials: "include",
+          }
+        )
       ).json();
       this.setState({ orgContacts: exOrgContacts });
     }
@@ -243,7 +293,14 @@ class CallLogEdit extends Component {
 
   async changeStatus() {
     const fetchedOrgStatusType = await (
-      await fetch(`/api/orgStatusTypes`, { credentials: "include" })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/orgStatusTypes`,
+        { credentials: "include" }
+      )
     ).json();
     this.setState({
       orgStatusTypes: fetchedOrgStatusType,

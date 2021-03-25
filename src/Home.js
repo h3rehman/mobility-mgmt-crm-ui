@@ -20,7 +20,14 @@ class Home extends Component {
   }
 
   async componentDidMount() {
-    const response = await fetch("/api/user", { credentials: "include" });
+    const response = await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        "/api/user",
+      { credentials: "include" }
+    );
     // let authCookieIndex = document.cookie.indexOf("isAuth");
     const body = await response.text();
     if (body === "") {

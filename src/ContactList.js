@@ -23,7 +23,7 @@ import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import Typography from "@material-ui/core/Typography";
-
+import localConfig from "./localConfig.json";
 import { withCookies, Cookies } from "react-cookie";
 
 class ContactList extends Component {
@@ -55,7 +55,14 @@ class ContactList extends Component {
   async componentDidMount() {
     this.setState({ isLoading: true });
 
-    fetch("/api/contacts-sorted-default", { credentials: "include" })
+    fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        "/api/contacts-sorted-default",
+      { credentials: "include" }
+    )
       .then((response) => response.json())
       .then((data) => this.setState({ pagedContacts: data, isLoading: false }))
       .then(() => this.createPageArray());
@@ -83,7 +90,11 @@ class ContactList extends Component {
 
     const fetchedPage = await (
       await fetch(
-        `/api/contacts-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/contacts-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}`,
         {
           credentials: "include",
         }
@@ -97,7 +108,11 @@ class ContactList extends Component {
 
     const fetchedPage = await (
       await fetch(
-        `/api/contacts-filtered-sorted/0/${size}/${sortedField}/${sortOrder}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/contacts-filtered-sorted/0/${size}/${sortedField}/${sortOrder}`,
         {
           credentials: "include",
         }
@@ -125,7 +140,11 @@ class ContactList extends Component {
     }
     const fetchedPage = await (
       await fetch(
-        `/api/contacts-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/contacts-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}`,
         {
           credentials: "include",
         }
