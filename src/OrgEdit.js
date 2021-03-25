@@ -15,6 +15,7 @@ import Alert from "@material-ui/lab/Alert";
 import Snackbar from "@material-ui/core/Snackbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import localConfig from "./localConfig.json";
 
 class OrgEdit extends Component {
   static propTypes = {
@@ -69,17 +70,31 @@ class OrgEdit extends Component {
   async componentDidMount() {
     if (this.props.match.params.id !== "new") {
       const org = await (
-        await fetch(`/api/organizations/${this.props.match.params.id}`, {
-          credentials: "include",
-        })
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/organizations/${this.props.match.params.id}`,
+          {
+            credentials: "include",
+          }
+        )
       ).json();
       this.setState({ item: org });
       this.setState({ addContactButton: "block" });
     }
     const fetchedCounties = await (
-      await fetch("/api/counties", {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/counties",
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     this.setState({ counties: fetchedCounties });
   }
@@ -108,16 +123,23 @@ class OrgEdit extends Component {
     const { conObj } = this.state;
     const { item } = this.state;
 
-    await fetch(`/api/orgContact/${item.orgId}`, {
-      method: "POST",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(conObj),
-    });
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/orgContact/${item.orgId}`,
+      {
+        method: "POST",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(conObj),
+      }
+    );
     window.location.href = "/organizations/" + item.orgId;
   }
 
@@ -127,16 +149,23 @@ class OrgEdit extends Component {
 
     let headerEntries = "";
     let postId = "";
-    await fetch(`/api/organization/${item.countyName}`, {
-      method: item.orgId ? "PUT" : "POST",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(item),
-    }).then((response) => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/organization/${item.countyName}`,
+      {
+        method: item.orgId ? "PUT" : "POST",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(item),
+      }
+    ).then((response) => {
       headerEntries = response.headers.entries();
     });
 
@@ -177,15 +206,22 @@ class OrgEdit extends Component {
   }
 
   async remove(orgId, contactId) {
-    await fetch(`/api/orgContact/${orgId}/${contactId}`, {
-      method: "DELETE",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    }).then(() => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/orgContact/${orgId}/${contactId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    ).then(() => {
       let updatedContacts = [...this.state.item.orgContacts].filter(
         (i) => i.contactId !== contactId
       );

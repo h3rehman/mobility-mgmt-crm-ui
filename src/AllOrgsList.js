@@ -23,8 +23,8 @@ import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import Typography from "@material-ui/core/Typography";
-
 import { withCookies, Cookies } from "react-cookie";
+import localConfig from "./localConfig.json";
 
 class AllOrgsList extends Component {
   static propTypes = {
@@ -64,20 +64,41 @@ class AllOrgsList extends Component {
   async componentDidMount() {
     this.setState({ isLoading: true });
 
-    fetch("/api/orgs-sorted-default", { credentials: "include" })
+    fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        "/api/orgs-sorted-default",
+      { credentials: "include" }
+    )
       .then((response) => response.json())
       .then((data) => this.setState({ pagedOrgs: data, isLoading: false }))
       .then(() => this.createPageArray());
 
     const fetchedCounties = await (
-      await fetch("/api/counties", {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/counties",
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     const fetchedStatuses = await (
-      await fetch("/api/allStatusTypes", {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/allStatusTypes",
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     this.setState({ counties: fetchedCounties, allStatus: fetchedStatuses });
   }
@@ -130,7 +151,11 @@ class AllOrgsList extends Component {
     let statusesQuery = this.statusesQueryURL(statusFiltered);
     const fetchedPage = await (
       await fetch(
-        `/api/orgs-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}?${countiesQuery}&${statusesQuery}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/orgs-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}?${countiesQuery}&${statusesQuery}`,
         {
           credentials: "include",
         }
@@ -151,7 +176,11 @@ class AllOrgsList extends Component {
     let statusesQuery = this.statusesQueryURL(statusFiltered);
     const fetchedPage = await (
       await fetch(
-        `/api/orgs-filtered-sorted/0/${size}/${sortedField}/${sortOrder}?${countiesQuery}&${statusesQuery}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/orgs-filtered-sorted/0/${size}/${sortedField}/${sortOrder}?${countiesQuery}&${statusesQuery}`,
         {
           credentials: "include",
         }
@@ -186,7 +215,11 @@ class AllOrgsList extends Component {
     }
     const fetchedPage = await (
       await fetch(
-        `/api/orgs-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}?${countiesQuery}&${statusesQuery}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/orgs-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}?${countiesQuery}&${statusesQuery}`,
         {
           credentials: "include",
         }
@@ -234,7 +267,11 @@ class AllOrgsList extends Component {
     let statusesQuery = this.statusesQueryURL(statusFiltered);
     const fetchedPage = await (
       await fetch(
-        `/api/orgs-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}?${countiesQuery}&${statusesQuery}`,
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/orgs-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}?${countiesQuery}&${statusesQuery}`,
         {
           credentials: "include",
         }

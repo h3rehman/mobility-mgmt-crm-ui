@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import { Button, Container, Form, FormGroup, Input, Label } from "reactstrap";
 import AppNavbar from "./AppNavbar";
+import localConfig from "./localConfig.json";
 
 class ContactEdit extends Component {
   emptyItem = {
@@ -25,7 +26,13 @@ class ContactEdit extends Component {
   async componentDidMount() {
     if (this.props.match.params.id !== "new") {
       const contact = await (
-        await fetch(`/api/contact/${this.props.match.params.id}`)
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/contact/${this.props.match.params.id}`
+        )
       ).json();
       this.setState({ item: contact });
     }
@@ -44,14 +51,21 @@ class ContactEdit extends Component {
     event.preventDefault();
     const { item } = this.state;
 
-    await fetch(`/api/contact`, {
-      method: item.contactId ? "PUT" : "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(item),
-    });
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/contact`,
+      {
+        method: item.contactId ? "PUT" : "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(item),
+      }
+    );
     this.props.history.push("/organizations");
   }
 

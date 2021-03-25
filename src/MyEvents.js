@@ -4,6 +4,7 @@ import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import localConfig from "./localConfig.json";
 
 class MyEvents extends Component {
   static propTypes = {
@@ -23,7 +24,14 @@ class MyEvents extends Component {
   componentDidMount() {
     this.setState({ isLoading: true });
 
-    fetch("/api/appointments", { credentials: "include" })
+    fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        "/api/appointments",
+      { credentials: "include" }
+    )
       .then((response) => response.json())
       .then((data) => this.setState({ events: data, isLoading: false }));
   }

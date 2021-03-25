@@ -18,6 +18,7 @@ import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
 import { grey } from "@material-ui/core/colors";
+import localConfig from "./localConfig.json";
 
 class OrgRead extends Component {
   static propTypes = {
@@ -77,14 +78,28 @@ class OrgRead extends Component {
 
   async componentDidMount() {
     const org = await (
-      await fetch(`/api/organizations/${this.props.match.params.id}`, {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/organizations/${this.props.match.params.id}`,
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     const notes = await (
-      await fetch(`/api/org/notes/${this.props.match.params.id}`, {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/org/notes/${this.props.match.params.id}`,
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     this.setState({ item: org, orgNotes: notes });
   }
@@ -101,16 +116,23 @@ class OrgRead extends Component {
       }, 4000);
     } else {
       const { item } = this.state;
-      await fetch(`/api/org/newNote/${item.orgId}`, {
-        method: "POST",
-        headers: {
-          "X-XSRF-TOKEN": this.state.csrfToken,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(noteObj),
-      }).then((response) => {
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/org/newNote/${item.orgId}`,
+        {
+          method: "POST",
+          headers: {
+            "X-XSRF-TOKEN": this.state.csrfToken,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(noteObj),
+        }
+      ).then((response) => {
         let headerEntries = response.headers.entries();
         for (var pair of headerEntries) {
           if (pair[0] === "location") {
@@ -158,16 +180,23 @@ class OrgRead extends Component {
 
   async updateNote(noteId) {
     this.updatedNote.noteId = noteId;
-    await fetch(`/api/editNote/${noteId}`, {
-      method: "PUT",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(this.updatedNote),
-    }).then(() => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/editNote/${noteId}`,
+      {
+        method: "PUT",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(this.updatedNote),
+      }
+    ).then(() => {
       //Alert Note updated
       this.setState({ noteUpdateAlert: true });
       this.updatedNote = this.emptyNote;
@@ -180,15 +209,22 @@ class OrgRead extends Component {
   }
 
   async deleteNote(noteId) {
-    await fetch(`/api/deleteNote/${noteId}`, {
-      method: "DELETE",
-      headers: {
-        "X-XSRF-TOKEN": this.state.csrfToken,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    }).then(() => {
+    await fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/deleteNote/${noteId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-XSRF-TOKEN": this.state.csrfToken,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    ).then(() => {
       let updatedOrgNotes = [...this.state.orgNotes].filter(
         (i) => i.noteId !== noteId
       );
@@ -199,9 +235,16 @@ class OrgRead extends Component {
   async enableCallLogView() {
     let callLogListResult = "";
     const fetchedCallLogList = await (
-      await fetch(`/api/org/callLogNotes/${this.props.match.params.id}`, {
-        credentials: "include",
-      })
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/org/callLogNotes/${this.props.match.params.id}`,
+        {
+          credentials: "include",
+        }
+      )
     ).json();
     if (fetchedCallLogList.length < 1) {
       callLogListResult = (
