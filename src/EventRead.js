@@ -9,11 +9,17 @@ import {
   FormGroup,
   Label,
   Input,
+  CustomInput,
 } from "reactstrap";
 import EditableLabel from "react-inline-editing";
 import DeleteIcon from "@material-ui/icons/Delete";
+import InsertInvitationIcon from "@material-ui/icons/InsertInvitation";
 import Alert from "@material-ui/lab/Alert";
 import Snackbar from "@material-ui/core/Snackbar";
+import Accordion from "@material-ui/core/Accordion";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
+import Typography from "@material-ui/core/Typography";
 import AppNavbar from "./AppNavbar";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
@@ -70,12 +76,18 @@ class EventRead extends Component {
       noteEditMode: false,
       csrfToken: cookies.get("XSRF-TOKEN"),
       eventJoined: false,
+      activePresenters: null,
+      invitees: [],
     };
     this.handleNoteSubmit = this.handleNoteSubmit.bind(this);
     this.handleNoteChange = this.handleNoteChange.bind(this);
     this._handleFocusOut = this._handleFocusOut.bind(this);
     this.handleNoteEditClick = this.handleNoteEditClick.bind(this);
     this.deleteNote = this.deleteNote.bind(this);
+    this.getAcitvePresenters = this.getAcitvePresenters.bind(this);
+    this.sendInvites = this.sendInvites.bind(this);
+    this.addInvitees = this.addInvitees.bind(this);
+    this.handleInviteAccordion = this.handleInviteAccordion.bind(this);
   }
 
   async componentDidMount() {
@@ -118,12 +130,69 @@ class EventRead extends Component {
         }
       )
     ).json();
+
     this.setState({ eventNotes: fetchedNotes, eventJoined: eveJoined });
+  }
+
+  async getAcitvePresenters() {
+    const fetchedPresenters = await (
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/activePresenters",
+        {
+          credentials: "include",
+        }
+      )
+    ).json();
+    this.setState({ activePresenters: fetchedPresenters });
+  }
+
+  addInvitees = (presenterId) => (e) => {
+    let { invitees } = this.state;
+    if (e.target.checked === true) {
+      invitees.push(presenterId);
+    } else {
+      invitees = invitees.filter((x) => x !== presenterId);
+    }
+    this.setState({ invitees });
+  };
+
+  async sendInvites() {
+    let { event, invitees } = this.state;
+    const queryURLInvitees = invitees
+      .map((presenterId) => {
+        return "presenter=" + presenterId;
+      })
+      .join("&");
+
+    await (
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/send-invite/${event.eventName}/${"Message"}/${event.location}/${
+            event.eventId
+          }?${queryURLInvitees}`,
+        {
+          credentials: "include",
+        }
+      )
+    ).json();
+  }
+
+  async handleInviteAccordion() {
+    let { activePresenters } = this.state;
+    if (activePresenters === null) {
+      this.getAcitvePresenters();
+    }
   }
 
   async joinEvent() {
     const { event } = this.state;
-    console.log("Join Event Called!");
 
     await fetch(
       "https://" +
@@ -304,6 +373,8 @@ class EventRead extends Component {
       newNoteAlert,
       noteUpdateAlert,
       noteEditMode,
+      activePresenters,
+      showPresentersToast,
     } = this.state;
 
     const dismissEmtpyNoteAlert = (event, reason) => {
@@ -569,6 +640,35 @@ class EventRead extends Component {
       );
     }
 
+    //Toast for sending event invites.
+    let eventInviteSpace = null;
+    if (activePresenters !== null) {
+      eventInviteSpace = activePresenters.map((presenter) => {
+        return (
+          <CustomInput
+            key={presenter.presenterId}
+            type="checkbox"
+            id={presenter.presenterId}
+            label={
+              presenter.name +
+              " " +
+              presenter.lastName +
+              " (" +
+              presenter.email +
+              ")"
+            }
+            onChange={this.addInvitees(presenter.presenterId)}
+          />
+        );
+      });
+    } else if (showPresentersToast === true) {
+      eventInviteSpace = (
+        <div className="mono-font">
+          Error occurred in retrieving Presenters.
+        </div>
+      );
+    }
+
     return (
       <div>
         <AppNavbar />
@@ -662,6 +762,30 @@ class EventRead extends Component {
                 <b>Join Event</b>
               </Button>
             )}
+          </div>
+          <div className="row headLineSpace">
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<InsertInvitationIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+                onClick={() => this.handleInviteAccordion()}
+              >
+                <Typography>Send Calendar Invites... </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <div className="paraSpace">{eventInviteSpace}</div>
+                <div>
+                  <Button
+                    size="sm"
+                    color="primary"
+                    onClick={() => this.sendInvites()}
+                  >
+                    <b>Send Invite</b>
+                  </Button>
+                </div>
+              </AccordionDetails>
+            </Accordion>
           </div>
           <div>
             <Snackbar
