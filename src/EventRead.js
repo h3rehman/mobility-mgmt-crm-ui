@@ -73,6 +73,9 @@ class EventRead extends Component {
       emptyNoteAlert: false,
       newNoteAlert: false,
       noteUpdateAlert: false,
+      noInviteeSelectedAlert: false,
+      inviteSentAlert: false,
+      inviteErrorAlert: false,
       noteEditMode: false,
       csrfToken: cookies.get("XSRF-TOKEN"),
       eventJoined: false,
@@ -162,13 +165,19 @@ class EventRead extends Component {
 
   async sendInvites() {
     let { event, invitees } = this.state;
-    const queryURLInvitees = invitees
-      .map((presenterId) => {
-        return "presenter=" + presenterId;
-      })
-      .join("&");
 
-    await (
+    if (invitees.length < 1) {
+      this.setState({ noInviteeSelectedAlert: true });
+      window.setTimeout(() => {
+        this.setState({ noInviteeSelectedAlert: false });
+      }, 8000);
+    } else {
+      const queryURLInvitees = invitees
+        .map((presenterId) => {
+          return "presenter=" + presenterId;
+        })
+        .join("&");
+
       await fetch(
         "https://" +
           localConfig.SERVICE.URL +
@@ -180,8 +189,22 @@ class EventRead extends Component {
         {
           credentials: "include",
         }
-      )
-    ).json();
+      ).then(async (response) => {
+        //const data = await response.json();
+        // check for error response
+        if (!response.ok) {
+          this.setState({ inviteErrorAlert: true });
+          window.setTimeout(() => {
+            this.setState({ inviteErrorAlert: false });
+          }, 10000);
+        } else {
+          this.setState({ inviteSentAlert: true });
+          window.setTimeout(() => {
+            this.setState({ inviteSentAlert: false });
+          }, 10000);
+        }
+      });
+    }
   }
 
   async handleInviteAccordion() {
@@ -372,6 +395,9 @@ class EventRead extends Component {
       emptyNoteAlert,
       newNoteAlert,
       noteUpdateAlert,
+      noInviteeSelectedAlert,
+      inviteSentAlert,
+      inviteErrorAlert,
       noteEditMode,
       activePresenters,
       showPresentersToast,
@@ -394,6 +420,24 @@ class EventRead extends Component {
         return;
       }
       this.setState({ noteUpdateAlert: false });
+    };
+    const dismissNoInviteeSelectedAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ noInviteeSelectedAlert: false });
+    };
+    const dismissInviteSentAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ inviteSentAlert: false });
+    };
+    const dismissInviteErrorAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ inviteErrorAlert: false });
     };
 
     const title = <h3>Event Details</h3>;
@@ -764,6 +808,60 @@ class EventRead extends Component {
             )}
           </div>
           <div className="row headLineSpace">
+            <div>
+              <Snackbar
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                open={inviteSentAlert}
+                autoHideDuration={12000}
+                onClose={dismissInviteSentAlert}
+              >
+                <Alert
+                  variant="outlined"
+                  severity="success"
+                  className="success-color"
+                  onClose={dismissInviteSentAlert}
+                >
+                  <b>Invite sent!</b>
+                </Alert>
+              </Snackbar>
+            </div>
+            <div>
+              <Snackbar
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                open={inviteErrorAlert}
+                autoHideDuration={12000}
+                onClose={dismissInviteErrorAlert}
+              >
+                <Alert
+                  variant="outlined"
+                  severity="error"
+                  className="error-color"
+                  onClose={dismissInviteErrorAlert}
+                >
+                  <strong>
+                    SORRY! Something went wrong with the invite, please try
+                    again or contact IT Support.
+                  </strong>
+                </Alert>
+              </Snackbar>
+            </div>
+            <div>
+              <Snackbar
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                open={noInviteeSelectedAlert}
+                autoHideDuration={12000}
+                onClose={dismissNoInviteeSelectedAlert}
+              >
+                <Alert
+                  variant="outlined"
+                  severity="warning"
+                  className="warning-color"
+                  onClose={dismissNoInviteeSelectedAlert}
+                >
+                  Please have atleast one Presenter selected to send the invite.
+                </Alert>
+              </Snackbar>
+            </div>
             <Accordion>
               <AccordionSummary
                 expandIcon={<InsertInvitationIcon />}
