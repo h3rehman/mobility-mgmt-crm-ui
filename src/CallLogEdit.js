@@ -202,6 +202,11 @@ class CallLogEdit extends Component {
     if (orgId !== "-1" && note.noteEntry !== "") {
       let headerEntries = "";
       let postId = "";
+
+      //To Avoid '400' bad request for body
+      note.callLog.createdBy = null;
+      note.callLog.lastModifiedBy = null;
+
       await fetch(
         "https://" +
           localConfig.SERVICE.URL +
