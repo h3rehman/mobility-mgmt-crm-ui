@@ -81,6 +81,7 @@ class EventRead extends Component {
       eventJoined: false,
       activePresenters: null,
       invitees: [],
+      inviteMessage: "",
     };
     this.handleNoteSubmit = this.handleNoteSubmit.bind(this);
     this.handleNoteChange = this.handleNoteChange.bind(this);
@@ -91,6 +92,7 @@ class EventRead extends Component {
     this.sendInvites = this.sendInvites.bind(this);
     this.addInvitees = this.addInvitees.bind(this);
     this.handleInviteAccordion = this.handleInviteAccordion.bind(this);
+    this.handleInviteMessage = this.handleInviteMessage.bind(this);
   }
 
   async componentDidMount() {
@@ -164,7 +166,7 @@ class EventRead extends Component {
   };
 
   async sendInvites() {
-    let { event, invitees } = this.state;
+    let { event, invitees, inviteMessage } = this.state;
 
     if (invitees.length < 1) {
       this.setState({ noInviteeSelectedAlert: true });
@@ -183,9 +185,7 @@ class EventRead extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/send-invite/${event.eventName}/${"Message"}/${event.location}/${
-            event.eventId
-          }?${queryURLInvitees}`,
+          `/api/send-invite/${event.eventName}/${inviteMessage}/${event.location}/${event.eventId}?${queryURLInvitees}`,
         {
           credentials: "include",
         }
@@ -212,6 +212,13 @@ class EventRead extends Component {
     if (activePresenters === null) {
       this.getAcitvePresenters();
     }
+  }
+
+  handleInviteMessage(e) {
+    const target = e.target;
+    const value = target.value;
+    const name = target.name;
+    this.setState({ inviteMessage: value });
   }
 
   async joinEvent() {
@@ -873,6 +880,18 @@ class EventRead extends Component {
               </AccordionSummary>
               <AccordionDetails>
                 <div className="paraSpace">{eventInviteSpace}</div>
+                <div className="row">
+                  <FormGroup>
+                    <Label for="inviteMessage">Invite Message</Label>
+                    <Input
+                      cols="50"
+                      type="textarea"
+                      name="inviteMessage"
+                      id="inviteMessage"
+                      onChange={this.handleInviteMessage}
+                    />
+                  </FormGroup>
+                </div>
                 <div>
                   <Button
                     size="sm"
