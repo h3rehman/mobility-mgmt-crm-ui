@@ -217,7 +217,6 @@ class EventRead extends Component {
   handleInviteMessage(e) {
     const target = e.target;
     const value = target.value;
-    const name = target.name;
     this.setState({ inviteMessage: value });
   }
 

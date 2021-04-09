@@ -58,8 +58,10 @@ class EventEdit extends Component {
       eventUpdateAlert: false,
       newEventAlert: false,
       audienceTypeDeleteAlert: false,
+      noStartEndDateAlert: false,
+      endDateBehindStDateAlert: false,
       joinEve: false,
-      lastStatus: null,
+      lastStatus: "null",
       eventTypes: [],
       csrfToken: cookies.get("XSRF-TOKEN"),
     };
@@ -240,6 +242,7 @@ class EventEdit extends Component {
   }
 
   handleStartDateChange(dateTime) {
+    let { event } = this.state;
     let dt = new Date(dateTime);
     let formattedDateTime = null;
     if (dateTime !== null) {
@@ -263,9 +266,27 @@ class EventEdit extends Component {
         ":" +
         minutes +
         ":00";
+      event.startDateTime = formattedDateTime;
+      //Set End date time to one hour ahead of start date time:
+      if (event.endDateTime === null) {
+        let endHours =
+          parseInt(dt.getHours() + 1) > 9
+            ? dt.getHours() + 1
+            : "0" + (dt.getHours() + 1);
+        let formattedEndDateTime =
+          dt.getFullYear() +
+          "-" +
+          month +
+          "-" +
+          date +
+          "T" +
+          endHours +
+          ":" +
+          minutes +
+          ":00";
+        event.endDateTime = formattedEndDateTime;
+      }
     }
-    let event = { ...this.state.event };
-    event.startDateTime = formattedDateTime;
     this.setState({ event });
   }
 
@@ -317,65 +338,78 @@ class EventEdit extends Component {
   async handleSubmit(e) {
     e.preventDefault();
     const { event } = this.state;
-    const { orgId } = this.state;
-    const { joinEve, lastStatus } = this.state;
-    const { eventAudienceTypes } = this.state;
-    let headerEntries = "";
-    let postId = "";
+    if (event.startDateTime !== null && event.endDateTime !== null) {
+      let dtStart = new Date(event.startDateTime);
+      let dtEnd = new Date(event.endDateTime);
+      if (dtStart - dtEnd > 0) {
+        this.setState({ endDateBehindStDateAlert: true });
+        window.setTimeout(() => {
+          this.setState({ endDateBehindStDateAlert: false });
+        }, 6000);
+      } else {
+        const { orgId, joinEve, lastStatus, eventAudienceTypes } = this.state;
+        let headerEntries = "";
+        let postId = "";
 
-    let audTypesQuery = eventAudienceTypes
-      .map((type) => {
-        return "audType=" + type;
-      })
-      .join("&");
+        let audTypesQuery = eventAudienceTypes
+          .map((type) => {
+            return "audType=" + type;
+          })
+          .join("&");
 
-    event.eventPresenters = null; //making it null before the PUT call, creating a deserialization error in Jackson otherwise
-    event.eventaudienceType = null;
-    event.lastStatus = null;
-    await fetch(
-      "https://" +
-        localConfig.SERVICE.URL +
-        ":" +
-        localConfig.SERVICE.PORT +
-        `/api/event/${event.eventTypeDesc}/${orgId}/${joinEve}/${lastStatus}?${audTypesQuery}`,
-      {
-        method: event.eventId ? "PUT" : "POST",
-        headers: {
-          "X-XSRF-TOKEN": this.state.csrfToken,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(event),
-      }
-    ).then((response) => {
-      headerEntries = response.headers.entries();
-    });
+        event.eventPresenters = null; //making it null before the PUT call, creating a deserialization error in Jackson otherwise
+        event.eventaudienceType = null;
+        event.lastStatus = null;
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/event/${event.eventTypeDesc}/${orgId}/${joinEve}/${lastStatus}?${audTypesQuery}`,
+          {
+            method: event.eventId ? "PUT" : "POST",
+            headers: {
+              "X-XSRF-TOKEN": this.state.csrfToken,
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(event),
+          }
+        ).then((response) => {
+          headerEntries = response.headers.entries();
+        });
 
-    if (event.eventId) {
-      //For PUT Calls
-      this.setState({ eventUpdateAlert: true });
-      window.scrollTo(0, 0);
-      window.setTimeout(() => {
-        this.setState({ eventUpdateAlert: false });
-      }, 1000);
-      await new Promise((r) => setTimeout(r, 1000));
-      window.location.href = "/event/read/" + event.eventId;
-    } else {
-      //For POST Calls
-      this.setState({ newEventAlert: true });
-      window.scrollTo(0, 0);
-      await new Promise((r) => setTimeout(r, 3000));
-      for (var pair of headerEntries) {
-        if (pair[0] === "location") {
-          let loc = pair[1].toString();
-          postId = loc.split("/").pop();
-          window.location.href = "/event/read/" + postId;
-          break;
+        if (event.eventId) {
+          //For PUT Calls
+          this.setState({ eventUpdateAlert: true });
+          window.scrollTo(0, 0);
+          window.setTimeout(() => {
+            this.setState({ eventUpdateAlert: false });
+          }, 1000);
+          await new Promise((r) => setTimeout(r, 1000));
+          window.location.href = "/event/read/" + event.eventId;
+        } else {
+          //For POST Calls
+          this.setState({ newEventAlert: true });
+          window.scrollTo(0, 0);
+          await new Promise((r) => setTimeout(r, 3000));
+          for (var pair of headerEntries) {
+            if (pair[0] === "location") {
+              let loc = pair[1].toString();
+              postId = loc.split("/").pop();
+              window.location.href = "/event/read/" + postId;
+              break;
+            }
+          }
         }
       }
+    } else {
+      this.setState({ noStartEndDateAlert: true });
+      window.setTimeout(() => {
+        this.setState({ noStartEndDateAlert: false });
+      }, 6000);
     }
-    // window.location.href = "/event/read/" + event.eventId;
   }
 
   render() {
@@ -389,6 +423,8 @@ class EventEdit extends Component {
       eventUpdateAlert,
       newEventAlert,
       audienceTypeDeleteAlert,
+      noStartEndDateAlert,
+      endDateBehindStDateAlert,
     } = this.state;
     const dismissEventUpdateAlert = (event, reason) => {
       if (reason === "clickaway") {
@@ -408,6 +444,19 @@ class EventEdit extends Component {
       }
       this.setState({ audienceTypeDeleteAlert: false });
     };
+    const dismissNoStartEndDateAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ noStartEndDateAlert: false });
+    };
+    const dismissEndDateBehindStDateAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ endDateBehindStDateAlert: false });
+    };
+
     const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
 
     let joinEventSwitch = "";
@@ -587,6 +636,36 @@ class EventEdit extends Component {
             >
               New Event is created!{" "}
               <strong>PLEASE WAIT FOR THE PAGE TO REFRESH!</strong>
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={noStartEndDateAlert}
+            autoHideDuration={5000}
+            onClose={dismissNoStartEndDateAlert}
+          >
+            <Alert
+              variant="outlined"
+              severity="warning"
+              className="warning-color"
+              onClose={dismissNoStartEndDateAlert}
+            >
+              <strong>Start and/or End Dates not set.</strong>
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={endDateBehindStDateAlert}
+            autoHideDuration={5000}
+            onClose={dismissEndDateBehindStDateAlert}
+          >
+            <Alert
+              variant="outlined"
+              severity="warning"
+              className="warning-color"
+              onClose={dismissEndDateBehindStDateAlert}
+            >
+              <strong>Start Date/Time cannot be ahead of End Date/Time</strong>
             </Alert>
           </Snackbar>
           <Form onSubmit={this.handleSubmit}>
