@@ -339,7 +339,7 @@ class OrgRead extends Component {
             <td>{contact.title}</td>
             <td>{contact.email}</td>
             <td>{contact.phone}</td>
-            <td>{contact.phone}</td>
+            <td>{contact.altPhone}</td>
             <td>
               <ButtonGroup>
                 <Button

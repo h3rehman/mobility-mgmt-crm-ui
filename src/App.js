@@ -14,6 +14,7 @@ import EventRead from "./EventRead";
 import MyCallLogs from "./MyCallLogs";
 import CallLogEdit from "./CallLogEdit";
 import ContactList from "./ContactList";
+import ContactRead from "./ContactRead";
 
 class App extends Component {
   render() {
@@ -27,6 +28,7 @@ class App extends Component {
             <Route path="/myoutreach" exact={true} component={MyEvents} />
             <Route path="/organizations/:id" component={OrgEdit} />
             <Route path="/organization/read/:id" component={OrgRead} />
+            <Route path="/contact/read/:id" component={ContactRead} />
             <Route path="/contact/:id" component={ContactEdit} />
             <Route path="/events/:id" component={EventEdit} />
             <Route path="/event/read/:id" component={EventRead} />
