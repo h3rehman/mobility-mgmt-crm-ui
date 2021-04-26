@@ -600,7 +600,7 @@ class EventRead extends Component {
                 inputClassName={`note-class-${note.noteId}`}
                 inputWidth="500px"
                 inputHeight="30px"
-                inputMaxLength="100"
+                inputMaxLength={100}
                 labelFontWeight="normal"
                 inputFontWeight="bold"
                 onFocus={() => this.handleNoteEditClick(note.noteId)}
@@ -615,7 +615,8 @@ class EventRead extends Component {
               })}
             </td>
             <td>
-              {note.createdByFirstName} {note.createdByLastName}
+              {note.createdBy ? note.createdBy.name : null}{" "}
+              {note.createdBy ? note.createdBy.lastName : null}
             </td>
             <td>
               {lmd.toLocaleDateString()}{" "}
@@ -625,7 +626,8 @@ class EventRead extends Component {
               })}
             </td>
             <td>
-              {note.lastModifiedByFirstName} {note.lastModifiedByLastName}
+              {note.lastModifiedBy ? note.lastModifiedBy.name : null}{" "}
+              {note.lastModifiedBy ? note.lastModifiedBy.lastName : null}
             </td>
             <td>
               <ButtonGroup>
@@ -684,7 +686,7 @@ class EventRead extends Component {
       notes = (
         <p>
           <h6>
-            <i>Add Comments.</i>
+            <i>No notes added.</i>
           </h6>
         </p>
       );
