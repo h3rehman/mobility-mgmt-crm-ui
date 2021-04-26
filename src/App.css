@@ -173,6 +173,10 @@
   padding-left: 15px;
 }
 
+.leftMarginSpace {
+  margin-left: 1rem;
+}
+
 .headLineSpace {
   padding-bottom: 2rem;
 }

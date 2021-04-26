@@ -304,7 +304,9 @@ class ContactEdit extends Component {
                 onClose={dismissContactErrorAlert}
               >
                 <strong>
-                  Something went wrong, please try again or contact IT Support.
+                  Something went wrong, it could be possible that the contact is
+                  already associated with the Org., otherwise please try again
+                  or contact IT Support.
                 </strong>
               </Alert>
             </Snackbar>

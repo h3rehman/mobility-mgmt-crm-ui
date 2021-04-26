@@ -10,6 +10,8 @@ import {
   ButtonGroup,
   Table,
 } from "reactstrap";
+import TextField from "@material-ui/core/TextField";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 import AppNavbar from "./AppNavbar";
 import Alert from "@material-ui/lab/Alert";
 import Snackbar from "@material-ui/core/Snackbar";
@@ -51,13 +53,21 @@ class OrgEdit extends Component {
     this.state = {
       item: this.emptyItem,
       conObj: this.emptyContact,
+      exConObj: this.emptyContact,
       counties: [],
+      allContactNames: [],
       contactFormCheck: false,
       addContactButton: "none",
+      associateContactButton: "block",
+      allContactNamesDisplay: "none",
       orgUpdateAlert: false,
       newOrgAlert: false,
       newContactAlert: false,
       errorInContactAlert: false,
+      associateContactErrorAlert: false,
+      associateContactEmptyAlert: false,
+      associateContactSuccessAlert: false,
+      exContactId: "-1",
       csrfToken: cookies.get("XSRF-TOKEN"),
     };
 
@@ -67,6 +77,14 @@ class OrgEdit extends Component {
     this.addContactRow = this.addContactRow.bind(this);
     this.handleConChange = this.handleConChange.bind(this);
     this.handleConSubmit = this.handleConSubmit.bind(this);
+    this.handleExistingContactSubmit = this.handleExistingContactSubmit.bind(
+      this
+    );
+    this.handleContactSelect = this.handleContactSelect.bind(this);
+    this.cancelAssociateContactSelect = this.cancelAssociateContactSelect.bind(
+      this
+    );
+    this.loadContactList = this.loadContactList.bind(this);
   }
 
   async componentDidMount() {
@@ -128,7 +146,7 @@ class OrgEdit extends Component {
         localConfig.SERVICE.URL +
         ":" +
         localConfig.SERVICE.PORT +
-        `/api/contact/${item.orgId}`,
+        `/api/create-update-contact/${item.orgId}`,
       {
         method: "POST",
         headers: {
@@ -221,6 +239,99 @@ class OrgEdit extends Component {
     }
   }
 
+  async loadContactList() {
+    this.setState({
+      associateContactButton: "none",
+      allContactNamesDisplay: "block",
+    });
+    const { allContactNames } = this.state;
+    if (allContactNames.length === 0) {
+      const fetchedExContacts = await (
+        await fetch(
+          "https://" +
+            localConfig.SERVICE.URL +
+            ":" +
+            localConfig.SERVICE.PORT +
+            `/api/all-contact-names`,
+          { credentials: "include" }
+        )
+      ).json();
+      this.setState({ allContactNames: fetchedExContacts });
+    }
+  }
+
+  handleContactSelect(e, newValue) {
+    if (newValue !== null) {
+      let { exConObj, exContactId } = this.state;
+      exContactId = newValue.contactId;
+      exConObj.contactId = newValue.contactId;
+      exConObj.firstName = newValue.firstName;
+      exConObj.lastName = newValue.lastName;
+      exConObj.title = newValue.title;
+      exConObj.phone = newValue.phone;
+      exConObj.altPhone = newValue.altPhone;
+      exConObj.email = newValue.email;
+      this.setState({ exConObj, exContactId });
+    } else {
+      this.setState({ exContactId: "-1", exConObj: this.emptyContact });
+    }
+  }
+
+  async handleExistingContactSubmit() {
+    const { exContactId, item, exConObj } = this.state;
+    let http_put_call = null;
+    if (exContactId === "-1") {
+      this.setState({ associateContactEmptyAlert: true });
+      window.setTimeout(() => {
+        this.setState({ associateContactEmptyAlert: false });
+      }, 6000);
+    } else {
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/associate-org-contact/${item.orgId}/${exContactId}`,
+        {
+          method: "PUT",
+          headers: {
+            "X-XSRF-TOKEN": this.state.csrfToken,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      ).then((response) => {
+        if (response.status === 204) {
+          http_put_call = "PUT";
+          item.orgContacts.push(exConObj);
+          this.setState({
+            associateContactSuccessAlert: true,
+            exConObj: this.emptyContact,
+            exContactId: "-1",
+          });
+          this.cancelAssociateContactSelect();
+          window.setTimeout(() => {
+            this.setState({ associateContactSuccessAlert: false });
+          }, 5000);
+        }
+      });
+      if (http_put_call !== "PUT") {
+        this.setState({ associateContactErrorAlert: true });
+        window.setTimeout(() => {
+          this.setState({ associateContactErrorAlert: false });
+        }, 12000);
+      }
+    }
+  }
+
+  async cancelAssociateContactSelect() {
+    this.setState({
+      associateContactButton: "block",
+      allContactNamesDisplay: "none",
+    });
+  }
+
   async addContactRow() {
     this.setState({ contactFormCheck: true, addContactButton: "none" });
   }
@@ -266,6 +377,12 @@ class OrgEdit extends Component {
       newOrgAlert,
       newContactAlert,
       errorInContactAlert,
+      associateContactErrorAlert,
+      associateContactEmptyAlert,
+      associateContactSuccessAlert,
+      allContactNames,
+      associateContactButton,
+      allContactNamesDisplay,
     } = this.state;
     const dismissOrgUpdateAlert = (event, reason) => {
       if (reason === "clickaway") {
@@ -290,6 +407,24 @@ class OrgEdit extends Component {
         return;
       }
       this.setState({ errorInContactAlert: false });
+    };
+    const dismissAssociateContactErrorAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ associateContactErrorAlert: false });
+    };
+    const dismissAssociateContactEmptyAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ associateContactEmptyAlert: false });
+    };
+    const dismissAssociateContactSuccessAlert = (event, reason) => {
+      if (reason === "clickaway") {
+        return;
+      }
+      this.setState({ associateContactSuccessAlert: false });
     };
 
     const title = (
@@ -701,6 +836,58 @@ class OrgEdit extends Component {
               </strong>
             </Alert>
           </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={associateContactErrorAlert}
+            autoHideDuration={12000}
+            onClose={dismissAssociateContactErrorAlert}
+          >
+            <Alert
+              variant="outlined"
+              severity="error"
+              className="error-color"
+              onClose={dismissAssociateContactErrorAlert}
+            >
+              <strong>
+                Something went wrong while associating a contact with this Org.,
+                it could be possible that the contact is already associated
+                otherwise please try again or contact IT Support.
+              </strong>
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={associateContactEmptyAlert}
+            autoHideDuration={6000}
+            onClose={dismissAssociateContactEmptyAlert}
+          >
+            <Alert
+              variant="outlined"
+              severity="warning"
+              className="warning-color"
+              onClose={dismissAssociateContactEmptyAlert}
+            >
+              <strong>
+                No contact selected to associate, please try again.
+              </strong>
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={associateContactSuccessAlert}
+            autoHideDuration={6000}
+            onClose={dismissAssociateContactSuccessAlert}
+          >
+            <Alert
+              variant="outlined"
+              severity="success"
+              className="success-color"
+              onClose={dismissAssociateContactSuccessAlert}
+            >
+              <strong>Contact is associated with this Org.</strong>
+            </Alert>
+          </Snackbar>
+
           <div className="paraSpace">
             <Form onSubmit={this.handleSubmit}>
               <div className="row">
@@ -814,17 +1001,71 @@ class OrgEdit extends Component {
           <p>
             <div>{contactForm}</div>
           </p>
-          <p>
+          <div className="paraSpace">
             <Button
               style={{ display: addContactButton }}
               outline
               color="info"
               onClick={() => this.addContactRow()}
-              size="sm"
             >
-              Add Contact
+              Add new contact
             </Button>
-          </p>
+          </div>
+          <div
+            className="paraSpace"
+            style={{ display: associateContactButton }}
+          >
+            <Button outline color="info" onClick={() => this.loadContactList()}>
+              Associate existing contact
+            </Button>
+          </div>
+          <div
+            className="paraSpace"
+            style={{ display: allContactNamesDisplay }}
+          >
+            <div className="paraSpace">
+              <Autocomplete
+                id="combo-box-demo"
+                options={allContactNames}
+                getOptionLabel={(option) =>
+                  option.firstName +
+                  " " +
+                  option.lastName +
+                  " | " +
+                  option.email +
+                  " | " +
+                  option.title
+                }
+                onChange={this.handleContactSelect}
+                style={{ width: 500 }}
+                name="associateContact"
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Link contact with this Org."
+                    variant="outlined"
+                  />
+                )}
+              />
+            </div>
+            <div className="headLineSpace">
+              <Button
+                color="primary"
+                onClick={() => this.handleExistingContactSubmit()}
+                size="sm"
+              >
+                Associate selected contact
+              </Button>
+              <Button
+                className="leftMarginSpace"
+                color="warning"
+                onClick={() => this.cancelAssociateContactSelect()}
+                size="sm"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
           <p>
             <div>{pastEvents}</div>
           </p>
