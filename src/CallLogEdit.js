@@ -363,7 +363,7 @@ class CallLogEdit extends Component {
 
     const title = (
       <h4 className="paraSpace">
-        {callLog.callId ? "Call Log" : "Add Call Log"}
+        {callLog.callId ? "Call Log" : "Create Call Log"}
       </h4>
     );
 
@@ -513,7 +513,7 @@ class CallLogEdit extends Component {
           <Container>
             <div className="float-right">
               <Button color="success" href="/callLog/new">
-                Add new Call Log?
+                Create new Call Log?
               </Button>
             </div>
           </Container>

@@ -579,7 +579,7 @@ class EventRead extends Component {
     } else {
       noteForm = (
         <Button size="sm" onClick={() => this.newNoteForm()}>
-          Add Event Note
+          Create event note
         </Button>
       );
     }
@@ -686,7 +686,7 @@ class EventRead extends Component {
       notes = (
         <p>
           <h6>
-            <i>No notes added.</i>
+            <i>No notes created.</i>
           </h6>
         </p>
       );
@@ -731,7 +731,7 @@ class EventRead extends Component {
             </Button>
             &nbsp;&nbsp;
             <Button color="success" href="/events/new">
-              Add new event?
+              Create new event?
             </Button>
           </div>
         </Container>

@@ -764,7 +764,7 @@ class OrgEdit extends Component {
           <Container>
             <div className="float-right">
               <Button color="success" href="/organizations/new">
-                Add new Organization?
+                Create new Org.?
               </Button>
             </div>
           </Container>

@@ -98,7 +98,7 @@ class MyCallLogs extends Component {
         <Container>
           <div className="float-right">
             <Button color="success" tag={Link} to="/callLog/new">
-              Add Call Log
+              Create Call Log
             </Button>
           </div>
         </Container>

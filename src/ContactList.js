@@ -11,7 +11,6 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
-  CustomInput,
 } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
@@ -23,6 +22,8 @@ import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import Typography from "@material-ui/core/Typography";
+import { DateRangePicker } from "rsuite";
+import "rsuite/dist/styles/rsuite-default.css";
 import localConfig from "./localConfig.json";
 import { withCookies, Cookies } from "react-cookie";
 
@@ -44,11 +45,15 @@ class ContactList extends Component {
       sortedField: null,
       sortOrder: null,
       dropdownOpen: false,
+      dateRange: [],
+      fromDate: null,
+      toDate: null,
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.pageLink = this.pageLink.bind(this);
     this.pageSizeLink = this.pageSizeLink.bind(this);
     this.getSortedField = this.getSortedField.bind(this);
+    this.setDateRange = this.setDateRange.bind(this);
     this.toggle = this.toggle.bind(this);
   }
 
@@ -85,7 +90,13 @@ class ContactList extends Component {
   }
 
   async pageLink(page) {
-    const { pagedContacts, sortedField, sortOrder } = this.state;
+    const {
+      pagedContacts,
+      sortedField,
+      sortOrder,
+      fromDate,
+      toDate,
+    } = this.state;
     const pageSize = pagedContacts.pageable.pageSize;
 
     const fetchedPage = await (
@@ -94,7 +105,7 @@ class ContactList extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/contacts-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}`,
+          `/api/contacts-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}`,
         {
           credentials: "include",
         }
@@ -104,7 +115,7 @@ class ContactList extends Component {
   }
 
   async pageSizeLink(size) {
-    const { sortedField, sortOrder } = this.state;
+    const { sortedField, sortOrder, fromDate, toDate } = this.state;
 
     const fetchedPage = await (
       await fetch(
@@ -112,7 +123,7 @@ class ContactList extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/contacts-filtered-sorted/0/${size}/${sortedField}/${sortOrder}`,
+          `/api/contacts-filtered-sorted/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}`,
         {
           credentials: "include",
         }
@@ -123,7 +134,7 @@ class ContactList extends Component {
   }
 
   async getSortedField(fieldName) {
-    const { sortedField, pagedContacts } = this.state;
+    const { sortedField, pagedContacts, fromDate, toDate } = this.state;
     let { sortOrder } = this.state;
 
     const pageSize = pagedContacts.pageable.pageSize;
@@ -144,7 +155,7 @@ class ContactList extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/contacts-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}`,
+          `/api/contacts-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}`,
         {
           credentials: "include",
         }
@@ -158,6 +169,67 @@ class ContactList extends Component {
     });
   }
 
+  async applyDateFilter() {
+    const {
+      pagedContacts,
+      sortedField,
+      sortOrder,
+      fromDate,
+      toDate,
+    } = this.state;
+    const pageSize = pagedContacts.pageable.pageSize;
+
+    const fetchedPage = await (
+      await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/contacts-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}`,
+        {
+          credentials: "include",
+        }
+      )
+    ).json();
+    this.setState({ pagedContacts: fetchedPage, currentPage: 0 });
+    this.createPageArray();
+  }
+
+  async setDateRange(newRange) {
+    if (newRange.length === 2) {
+      let formattedFromDate = null;
+      let formattedToDate = null;
+      let from = newRange[0];
+      let to = newRange[1];
+      //from date formatting
+      let month =
+        parseInt(from.getMonth() + 1) > 9
+          ? from.getMonth() + 1
+          : "0" + (from.getMonth() + 1);
+      let date =
+        parseInt(from.getDate()) > 9 ? from.getDate() : "0" + from.getDate();
+      formattedFromDate =
+        from.getFullYear() + "-" + month + "-" + date + " 00:00:00";
+      //to date formatting
+      let tMonth =
+        parseInt(to.getMonth() + 1) > 9
+          ? to.getMonth() + 1
+          : "0" + (to.getMonth() + 1);
+      let tDate =
+        parseInt(to.getDate()) > 9 ? to.getDate() : "0" + to.getDate();
+      formattedToDate =
+        to.getFullYear() + "-" + tMonth + "-" + tDate + " 00:00:00";
+
+      this.setState({
+        dateRange: newRange,
+        fromDate: formattedFromDate,
+        toDate: formattedToDate,
+      });
+    } else {
+      this.setState({ dateRange: newRange, fromDate: null, toDate: null });
+    }
+  }
+
   render() {
     const {
       isLoading,
@@ -167,6 +239,7 @@ class ContactList extends Component {
       sortedField,
       sortOrder,
       dropdownOpen,
+      dateRange,
     } = this.state;
 
     if (isLoading) {
@@ -252,14 +325,14 @@ class ContactList extends Component {
     //Sort Order arrows
     let fnArrow = null;
     let lnArrow = null;
-    let orgArrow = null;
+    let lcdArrow = null;
     let titleArrow = null;
     let emailArrow = null;
 
     if (sortOrder !== null) {
       if (sortOrder === "asce") {
-        if (sortedField === "contactOrgs.organization.orgname") {
-          orgArrow = <ArrowUpwardIcon />;
+        if (sortedField === "lastContactDate") {
+          lcdArrow = <ArrowUpwardIcon />;
         } else if (sortedField === "lastName") {
           lnArrow = <ArrowUpwardIcon />;
         } else if (sortedField === "firstName") {
@@ -271,7 +344,7 @@ class ContactList extends Component {
         }
       } else if (sortOrder === "desc") {
         if (sortedField === "contactOrgs.organization.orgname") {
-          orgArrow = <ArrowDownwardIcon />;
+          lcdArrow = <ArrowDownwardIcon />;
         } else if (sortedField === "lastName") {
           lnArrow = <ArrowDownwardIcon />;
         } else if (sortedField === "firstName") {
@@ -286,18 +359,44 @@ class ContactList extends Component {
       fnArrow = <ArrowUpwardIcon />;
     }
 
+    const dateRangePicker = (
+      <DateRangePicker
+        placeholder={"Select date range..."}
+        value={dateRange}
+        onChange={this.setDateRange}
+      />
+    );
+
+    const filterAccordion = (
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<FilterListIcon />}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+          <Typography>Filter</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div className="paraSpace">{dateRangePicker}</div>
+          <div>
+            <Button onClick={() => this.applyDateFilter()}>Apply Filter</Button>
+          </div>
+        </AccordionDetails>
+      </Accordion>
+    );
+
     const contactList = pagedContacts.content.map((contact) => {
-      // let lastContactDate = null;
-      // if (contact.lastContact != null) {
-      //   let lc = new Date(contact.lastContact);
-      //   lastContactDate =
-      //     lc.toLocaleDateString() +
-      //     " " +
-      //     lc.toLocaleTimeString([], {
-      //       hour: "2-digit",
-      //       minute: "2-digit",
-      //     });
-      // }
+      let lastContactDate = null;
+      if (contact.lastContactDate != null) {
+        let lc = new Date(contact.lastContactDate);
+        lastContactDate =
+          lc.toLocaleDateString() +
+          " " +
+          lc.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      }
 
       return (
         <tr className="small-font" key={contact.contactId}>
@@ -326,6 +425,7 @@ class ContactList extends Component {
           <td>{contact.title}</td>
           <td>{contact.email}</td>
           <td>{contact.phone}</td>
+          <td>{lastContactDate}</td>
           <td>
             <ButtonGroup>
               <Button
@@ -348,10 +448,11 @@ class ContactList extends Component {
         <Container>
           <div className="float-right">
             <Button color="success" tag={Link} to="/contact/new">
-              Add Contact
+              Create Contact
             </Button>
           </div>
-          <h3>Contacts</h3>
+          <h3 className="headLineSpace">Contacts</h3>
+          <div className="float-left">{filterAccordion}</div>
           <Table className="mt-4" responsive bordered hover>
             <thead>
               <tr>
@@ -370,13 +471,13 @@ class ContactList extends Component {
                   Last Name {lnArrow}
                 </th>
                 <th
-                  className="link small-font"
+                  className="small-font"
                   width="20%"
-                  onClick={() =>
-                    this.getSortedField("contactOrgs.organization.orgname")
-                  }
+                  // onClick={() =>
+                  //   this.getSortedField("contactOrgs.organization.orgname")
+                  // }
                 >
-                  Org(s) Associated {orgArrow}
+                  Org(s) Associated
                 </th>
                 <th
                   className="link small-font"
@@ -394,6 +495,13 @@ class ContactList extends Component {
                 </th>
                 <th className="small-font" width="10%">
                   Phone
+                </th>
+                <th
+                  className="link small-font"
+                  width="10%"
+                  onClick={() => this.getSortedField("lastContactDate")}
+                >
+                  Last Contact {lcdArrow}
                 </th>
                 <th width="5%">Action</th>
               </tr>

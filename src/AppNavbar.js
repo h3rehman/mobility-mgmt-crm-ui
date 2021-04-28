@@ -27,10 +27,10 @@ class AppNavbar extends Component {
 
   constructor(props) {
     super(props);
+    this.state = { isOpen: false, dropdownOpen: false, orgDropdownOpen: false };
     this.toggle = this.toggle.bind(this);
-    this.onMouseEnter = this.onMouseEnter.bind(this);
-    this.onMouseLeave = this.onMouseLeave.bind(this);
-    this.state = { isOpen: false, dropdownOpen: false };
+    this.orgToggle = this.orgToggle.bind(this);
+    this.eventToggle = this.eventToggle.bind(this);
     this.logout = this.logout.bind(this);
   }
 
@@ -52,13 +52,25 @@ class AppNavbar extends Component {
     }));
   }
 
-  onMouseEnter() {
-    this.setState({ dropdownOpen: true });
+  orgToggle() {
+    this.setState((prevState) => ({
+      orgDropdownOpen: !prevState.orgDropdownOpen,
+    }));
   }
 
-  onMouseLeave() {
-    this.setState({ dropdownOpen: false });
+  eventToggle() {
+    this.setState((prevState) => ({
+      eventDropdownOpen: !prevState.eventDropdownOpen,
+    }));
   }
+
+  // onMouseEnter() {
+  //   this.setState({ dropdownOpen: true });
+  // }
+
+  // onMouseLeave() {
+  //   this.setState({ dropdownOpen: false });
+  // }
 
   logout() {
     let csrf = "XSRF-TOKEN";
@@ -81,7 +93,8 @@ class AppNavbar extends Component {
       .then((res) => res.json())
       .then((response) => {
         this.setState({ isAuthenticated: false });
-        document.cookie = "isAuth=" + false + ";" + " path=/";
+        // document.cookie = "isAuth=" + false + ";" + " path=/";
+        document.cookie = "isAuth=false; path=/";
         window.location.href =
           "//" + window.location.hostname + response.port + response.logoutUrl;
         // "?id_token_hint=" +
@@ -94,7 +107,7 @@ class AppNavbar extends Component {
   }
 
   render() {
-    const { firstName } = this.state;
+    const { firstName, orgDropdownOpen, eventDropdownOpen } = this.state;
     return (
       <Navbar dark expand="md">
         <NavbarBrand tag={Link} to="/">
@@ -102,14 +115,49 @@ class AppNavbar extends Component {
         </NavbarBrand>
         <NavbarToggler dark onClick={this.toggle} />
         <Collapse isOpen={this.state.isOpen} navbar>
-          <Nav className="ml-auto" navbar color="white">
-            <NavItem>
-              <NavLink href="/organizations">Organizations</NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink href="/events">Events</NavLink>
-            </NavItem>
-            <UncontrolledDropdown nav inNavbar className="user-nav-item">
+          <Nav className="ml-auto " navbar color="white">
+            <Dropdown
+              nav
+              isOpen={orgDropdownOpen}
+              onMouseEnter={this.orgToggle}
+              onMouseLeave={this.orgToggle}
+            >
+              <NavLink className="topSpace" href="/organizations">
+                Organizations
+              </NavLink>
+              <DropdownToggle nav></DropdownToggle>
+              <DropdownMenu>
+                <DropdownItem href="/organizations/new">
+                  Create Org.
+                </DropdownItem>
+                <DropdownItem divider />
+                <DropdownItem href="/contacts">
+                  <b>Contacts</b>
+                </DropdownItem>
+                <DropdownItem href="/contact/new">Create contact</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+
+            <Dropdown
+              nav
+              isOpen={eventDropdownOpen}
+              onMouseEnter={this.eventToggle}
+              onMouseLeave={this.eventToggle}
+            >
+              <NavLink className="topSpace" href="/events">
+                Events
+              </NavLink>
+              <DropdownToggle nav></DropdownToggle>
+              <DropdownMenu>
+                <DropdownItem href="/events/new">Create event</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+
+            <UncontrolledDropdown
+              nav
+              inNavbar
+              className="user-nav-item topSpace"
+            >
               <DropdownToggle nav caret className="user-name-text">
                 <AccountCircleOutlinedIcon
                   fontSize="large"

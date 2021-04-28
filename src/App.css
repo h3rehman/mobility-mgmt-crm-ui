@@ -132,6 +132,9 @@
 .navbar-nav {
   margin-right: 30px;
 }
+.topSpace {
+  margin-top: 0.75rem;
+}
 
 .user-name-text {
   font-weight: 600;
