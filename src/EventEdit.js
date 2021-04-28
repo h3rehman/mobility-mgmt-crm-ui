@@ -176,7 +176,7 @@ class EventEdit extends Component {
     ).then(() => {
       let updatedOrgs = Object.filter(
         this.state.event.orgNames,
-        ([id, name]) => id != orgId
+        ([id, name]) => id !== orgId
       );
       this.setState({
         event: { ...this.state.event, orgNames: updatedOrgs },
@@ -347,7 +347,8 @@ class EventEdit extends Component {
           this.setState({ endDateBehindStDateAlert: false });
         }, 6000);
       } else {
-        const { orgId, joinEve, lastStatus, eventAudienceTypes } = this.state;
+        const { orgId, joinEve, eventAudienceTypes } = this.state;
+        let { lastStatus } = this.state;
         let headerEntries = "";
         let postId = "";
 
@@ -360,6 +361,11 @@ class EventEdit extends Component {
         event.eventPresenters = null; //making it null before the PUT call, creating a deserialization error in Jackson otherwise
         event.eventaudienceType = null;
         event.lastStatus = null;
+
+        if (lastStatus === "") {
+          lastStatus = null;
+        }
+
         await fetch(
           "https://" +
             localConfig.SERVICE.URL +
