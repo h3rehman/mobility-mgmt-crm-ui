@@ -63,7 +63,7 @@ class EventList extends Component {
   async componentDidMount() {
     this.setState({ isLoading: true });
     //default pagination (1st page & 10 elements) and sorted by startDateTime
-    fetch(
+    await fetch(
       "https://" +
         localConfig.SERVICE.URL +
         ":" +
