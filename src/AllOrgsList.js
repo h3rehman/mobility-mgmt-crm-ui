@@ -524,7 +524,7 @@ class AllOrgsList extends Component {
         <Container>
           <div className="float-right">
             <Button color="success" tag={Link} to="/organizations/new">
-              Add Organization
+              Create Organization
             </Button>
           </div>
           <h3>Organizations</h3>

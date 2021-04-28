@@ -457,7 +457,7 @@ class EventEdit extends Component {
       this.setState({ endDateBehindStDateAlert: false });
     };
 
-    const title = <h3>{event.eventId ? "Edit Event" : "Add Event"}</h3>;
+    const title = <h3>{event.eventId ? "Edit Event" : "Create Event"}</h3>;
 
     let joinEventSwitch = "";
 
@@ -598,7 +598,7 @@ class EventEdit extends Component {
           <Container>
             <div className="float-right">
               <Button color="success" href="/events/new">
-                Add new event?
+                Create new event?
               </Button>
             </div>
           </Container>

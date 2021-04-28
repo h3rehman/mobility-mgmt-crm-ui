@@ -173,7 +173,9 @@ class ContactEdit extends Component {
       orgListBlock,
       associateOrgButtonBlock,
     } = this.state;
-    const title = <h3>{contact.contactId ? "Edit Contact" : "Add Contact"}</h3>;
+    const title = (
+      <h3>{contact.contactId ? "Edit Contact" : "Create Contact"}</h3>
+    );
 
     const dismissContactUpdateAlert = (event, reason) => {
       if (reason === "clickaway") {

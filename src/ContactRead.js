@@ -342,7 +342,7 @@ class ContactRead extends Component {
     } else {
       noteForm = (
         <Button size="sm" onClick={() => this.newNoteForm()}>
-          Add Contact Note
+          Create contact note
         </Button>
       );
     }
@@ -449,7 +449,7 @@ class ContactRead extends Component {
       notes = (
         <p>
           <h6>
-            <i>No notes added.</i>
+            <i>No notes created.</i>
           </h6>
         </p>
       );
@@ -468,7 +468,7 @@ class ContactRead extends Component {
             </Button>
             &nbsp;&nbsp;
             <Button color="success" href="/contact/new">
-              Add new Contact?
+              Create new Contact?
             </Button>
           </div>
         </Container>

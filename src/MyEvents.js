@@ -97,7 +97,7 @@ class MyEvents extends Component {
         <Container>
           <div className="float-right">
             <Button color="success" tag={Link} to="/events/new">
-              Add Event
+              Create Event
             </Button>
           </div>
         </Container>

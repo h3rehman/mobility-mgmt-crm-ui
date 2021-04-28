@@ -324,6 +324,18 @@ class OrgRead extends Component {
       this.setState({ noteUpdateAlert: false });
     };
 
+    let lastContact = null;
+    if (item.lastContact !== null) {
+      let lt = new Date(item.lastContact);
+      lastContact =
+        lt.toLocaleDateString() +
+        " " +
+        lt.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+    }
+
     const { noteEditMode, callLogsViewCheck, callLogList } = this.state;
     let { noteFormCheck } = this.state;
 
@@ -575,7 +587,7 @@ class OrgRead extends Component {
     } else {
       noteForm = (
         <Button size="sm" onClick={() => this.newNoteForm()}>
-          Add Org. Note
+          Create Org. Note
         </Button>
       );
     }
@@ -588,7 +600,7 @@ class OrgRead extends Component {
         color="success"
         to={"/callLog/new"}
       >
-        Add Call Log
+        Create Call Log
       </Button>
     );
 
@@ -738,7 +750,7 @@ class OrgRead extends Component {
             </Button>
             &nbsp;&nbsp;
             <Button color="success" href="/organizations/new">
-              Add new Organization?
+              Create new Org.?
             </Button>
           </div>
         </Container>
@@ -753,6 +765,9 @@ class OrgRead extends Component {
                 <span className="field fieldSpace">Last Status:</span>
                 {item.lastStatus}
               </div>
+            </div>
+            <div className="row paraSpace">
+              <span className="field">Last Contact:</span> {lastContact}
             </div>
             <div className="row paraSpace">
               <span className="field">Address:</span> {item.address}
