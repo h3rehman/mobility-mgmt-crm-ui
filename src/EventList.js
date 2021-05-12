@@ -331,20 +331,22 @@ class EventList extends Component {
   };
 
   render() {
-    const { pagedEvents, isLoading, pages } = this.state;
     const {
+      pagedEvents,
+      isLoading,
+      pages,
       currentPage,
       dateRange,
       eventTypes,
       eventStatuses,
       sortedField,
       sortOrder,
+      dropdownOpen,
     } = this.state;
 
     const firstPageCheck = currentPage > 0 ? "" : "disabled";
     const lastPageCheck =
       currentPage === pagedEvents.totalPages - 1 ? "disabled" : "";
-    const { dropdownOpen } = this.state;
 
     if (isLoading) {
       return (
