@@ -46,6 +46,7 @@ class MyEvents extends Component {
       eventTypesFiltered: [],
       eventStatuses: [],
       statusFiltered: [],
+      upcomingEventsCheck: true,
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.pageLink = this.pageLink.bind(this);
@@ -55,9 +56,10 @@ class MyEvents extends Component {
     this.setDateRange = this.setDateRange.bind(this);
     this.filterEventTypes = this.filterEventTypes.bind(this);
     this.filterStatus = this.filterStatus.bind(this);
+    this.handleUpcomingEventsCheckbox = this.handleUpcomingEventsCheckbox.bind(this);
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.setState({ isLoading: true });
 
     fetch(
@@ -65,7 +67,7 @@ class MyEvents extends Component {
         localConfig.SERVICE.URL +
         ":" +
         localConfig.SERVICE.PORT +
-        "/api/my-events-sorted-default",
+        "/api/sorted-default-myevents",
       { credentials: "include" }
     )
       .then((response) => response.json())
@@ -117,6 +119,12 @@ class MyEvents extends Component {
     this.setState({ pages: pages });
   }
 
+  async handleUpcomingEventsCheckbox (){
+    await this.setState(prevState => ({
+      upcomingEventsCheck: !prevState.upcomingEventsCheck
+    }));
+  }
+
   eventTypesQueryURL(eveTypesArray) {
     const queryURL = eveTypesArray
       .map((type) => {
@@ -144,6 +152,7 @@ class MyEvents extends Component {
       toDate,
       eventTypesFiltered,
       statusFiltered,
+      upcomingEventsCheck,
     } = this.state;
     const pageSize = pagedEvents.pageable.pageSize;
 
@@ -156,7 +165,7 @@ class MyEvents extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/my-events-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-myevents/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -173,6 +182,7 @@ class MyEvents extends Component {
       toDate,
       eventTypesFiltered,
       statusFiltered,
+      upcomingEventsCheck,
     } = this.state;
 
     let eveTypesQuery = this.eventTypesQueryURL(eventTypesFiltered);
@@ -184,7 +194,7 @@ class MyEvents extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/my-events-filtered-sorted/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-myevents/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -202,6 +212,7 @@ class MyEvents extends Component {
       toDate,
       eventTypesFiltered,
       statusFiltered,
+      upcomingEventsCheck,
     } = this.state;
     let { sortOrder } = this.state;
 
@@ -226,7 +237,7 @@ class MyEvents extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/my-events-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-myevents/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -249,6 +260,7 @@ class MyEvents extends Component {
       fromDate,
       toDate,
       statusFiltered,
+      upcomingEventsCheck,
     } = this.state;
 
     const pageSize = pagedEvents.pageable.pageSize;
@@ -262,7 +274,7 @@ class MyEvents extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/my-events-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-myevents/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -340,6 +352,7 @@ class MyEvents extends Component {
       sortedField,
       sortOrder,
       dropdownOpen,
+      upcomingEventsCheck
     } = this.state;
 
     const firstPageCheck = currentPage > 0 ? "" : "disabled";
@@ -468,27 +481,27 @@ class MyEvents extends Component {
     let eveArrow = null;
     if (sortOrder !== null) {
       if (sortOrder === "asce") {
-        if (sortedField === "startDateTime") {
+        if (sortedField === "event.startDateTime") {
           sdArrow = <ArrowUpwardIcon />;
-        } else if (sortedField === "location") {
+        } else if (sortedField === "event.location") {
           locArrow = <ArrowUpwardIcon />;
-        } else if (sortedField === "eventName") {
+        } else if (sortedField === "event.eventName") {
           eveArrow = <ArrowUpwardIcon />;
-        } else if (sortedField === "city") {
+        } else if (sortedField === "event.city") {
           citArrow = <ArrowUpwardIcon />;
-        } else if (sortedField === "endDateTime") {
+        } else if (sortedField === "event.endDateTime") {
           edArrow = <ArrowUpwardIcon />;
         }
       } else if (sortOrder === "desc") {
-        if (sortedField === "startDateTime") {
+        if (sortedField === "event.startDateTime") {
           sdArrow = <ArrowDownwardIcon />;
-        } else if (sortedField === "location") {
+        } else if (sortedField === "event.location") {
           locArrow = <ArrowDownwardIcon />;
-        } else if (sortedField === "eventName") {
+        } else if (sortedField === "event.eventName") {
           eveArrow = <ArrowDownwardIcon />;
-        } else if (sortedField === "city") {
+        } else if (sortedField === "event.city") {
           citArrow = <ArrowDownwardIcon />;
-        } else if (sortedField === "endDateTime") {
+        } else if (sortedField === "event.endDateTime") {
           edArrow = <ArrowDownwardIcon />;
         }
       }
@@ -502,6 +515,18 @@ class MyEvents extends Component {
         value={dateRange}
         onChange={this.setDateRange}
       />
+    );
+
+    const upcomingEventsCheckbox = (
+      <CustomInput
+      key={"upcomingEventsCheck"}
+      bsSize="lg"
+      checked={upcomingEventsCheck}
+      type="checkbox"
+      id={"upcomingEventsCheck"}
+      label={"Show only my upcoming events"}
+      onChange={this.handleUpcomingEventsCheckbox}
+    />
     );
 
     const filterAccordion = (
@@ -529,6 +554,7 @@ class MyEvents extends Component {
               </div>
             </div>
           </div>
+          <div className="paraSpace">{upcomingEventsCheckbox}</div>
           <div>
             <Button onClick={() => this.applyFilters()}>Apply Filters</Button>
           </div>
@@ -537,8 +563,8 @@ class MyEvents extends Component {
     );
 
     const eventList = pagedEvents.content.map((event) => {
-      let sd = new Date(event.startDateTime);
-      let ld = new Date(event.endDateTime);
+        let sd = new Date(event.startDateTime);
+        let ld = new Date(event.endDateTime);
       return (
         <tr key={event.eventId}>
           <td className="small-font" style={{ whiteSpace: "nowrap" }}>
@@ -578,7 +604,7 @@ class MyEvents extends Component {
                 color="primary"
                 tag={Link}
                 to={"/events/" + event.eventId}
-              >
+                >
                 Edit
               </Button>
             </ButtonGroup>
@@ -586,7 +612,11 @@ class MyEvents extends Component {
         </tr>
       );
     });
-
+    let noUpcomingEvents = null;
+    if (pagedEvents.content.length < 1){
+      noUpcomingEvents = <p>There are no upcoming events.</p>  
+  }
+    
     return (
       <div>
         <AppNavbar />
@@ -606,14 +636,14 @@ class MyEvents extends Component {
                 <th
                   className="link"
                   width="15%"
-                  onClick={() => this.getSortedField("location")}
+                  onClick={() => this.getSortedField("event.location")}
                 >
                   Location {locArrow}
                 </th>
                 <th
                   className="link"
                   width="15%"
-                  onClick={() => this.getSortedField("eventName")}
+                  onClick={() => this.getSortedField("event.eventName")}
                 >
                   Event Name {eveArrow}
                 </th>
@@ -622,14 +652,14 @@ class MyEvents extends Component {
                 <th
                   className="link"
                   width="5%"
-                  onClick={() => this.getSortedField("city")}
+                  onClick={() => this.getSortedField("event.city")}
                 >
                   City {citArrow}
                 </th>
                 <th
                   className="link"
                   width="20%"
-                  onClick={() => this.getSortedField("startDateTime")}
+                  onClick={() => this.getSortedField("event.startDateTime")}
                 >
                   Start Time {sdArrow}
                 </th>
@@ -637,7 +667,7 @@ class MyEvents extends Component {
                 <th
                   className="link"
                   width="20%"
-                  onClick={() => this.getSortedField("endDateTime")}
+                  onClick={() => this.getSortedField("event.endDateTime")}
                 >
                   End Time {edArrow}
                 </th>
@@ -647,7 +677,7 @@ class MyEvents extends Component {
             </thead>
             <tbody>{eventList}</tbody>
           </Table>
-
+          <div>{noUpcomingEvents}</div>
         </Container>
         <Container>
           <div>
