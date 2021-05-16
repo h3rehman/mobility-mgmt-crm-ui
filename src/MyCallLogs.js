@@ -104,10 +104,8 @@ class MyCallLogs extends Component {
 
   async callOrgStatuses() {
     let { callLogStatuses } = this.state;
-    console.log("Reached callOrgStatuses method...");
     if (callLogStatuses.length === 0) {
       //load all Status types
-      console.log("Calling API...");
       const fetchedStatusTypes = await (
         await fetch(
           "https://" +
