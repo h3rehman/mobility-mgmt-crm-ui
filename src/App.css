@@ -147,6 +147,33 @@
 .user-nav-item {
   margin-left: 3rem;
 }
+
+.elasticSearchBar {
+  min-width: 50%;
+  max-width: 100%;
+}
+
+.searchIcon {
+  color: white;
+  font-size: xxx-large !important;
+  margin-right: 2rem;
+}
+
+.closeIcon {
+  color: white;
+}
+
+.searchResultBlock {
+  background-color: white;
+  margin-top: 0.5rem;
+  position: absolute;
+  max-width: 100%;
+  min-width: 50%;
+  box-shadow: 0 0 0.3125rem rgba(0, 0, 0, 0.3);
+  padding: 0.5rem;
+  left: 14%;
+}
+
 /*Form Fields*/
 .required {
   color: red;
