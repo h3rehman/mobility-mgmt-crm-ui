@@ -166,13 +166,13 @@ class AppNavbar extends Component {
   if (searchHits !== null && searchHits.totalHits.value > 0){
     hits = searchHits.hits.map((hit) => {
          if (hit.index === "events"){
-           return <li key={hit.sourceAsMap.id}><a href={"/event/read/" + hit.sourceAsMap.id}>{"Event | " + hit.sourceAsMap.eventName + " | " + hit.sourceAsMap.location}</a></li>
+           return <li className="listElementSpace" key={hit.sourceAsMap.id}><a className="customLink" href={"/event/read/" + hit.sourceAsMap.id}>{"Event | " + hit.sourceAsMap.eventName + " | " + hit.sourceAsMap.location}</a></li>
          }
          else if (hit.index === "organizations"){
-          return <li key={hit.sourceAsMap.id}><a href={"/organization/read/" + hit.sourceAsMap.id}>{"Org. | " + hit.sourceAsMap.orgname }</a></li>
+          return <li className="listElementSpace" key={hit.sourceAsMap.id}><a className="customLink" href={"/organization/read/" + hit.sourceAsMap.id}>{"Org. | " + hit.sourceAsMap.orgname }</a></li>
          }
          else if (hit.index === "contacts"){
-          return <li key={hit.sourceAsMap.id}><a href={"/contact/read/" + hit.sourceAsMap.id}>{"Contact | " + hit.sourceAsMap.firstName + " " + hit.sourceAsMap.lastName }</a></li> 
+          return <li className="listElementSpace" key={hit.sourceAsMap.id}><a className="customLink" href={"/contact/read/" + hit.sourceAsMap.id}>{"Contact | " + hit.sourceAsMap.firstName + " " + hit.sourceAsMap.lastName }</a></li> 
          }
          else {
            return null;
@@ -184,7 +184,7 @@ class AppNavbar extends Component {
     hits = <span>No search results found...</span>
   }
   const searchResults = (
-    <ul>{hits}</ul>
+    <ul className="noStyleList">{hits}</ul>
   );
 
     return (
@@ -195,7 +195,7 @@ class AppNavbar extends Component {
         </NavbarBrand>
         <NavbarToggler dark onClick={this.toggle} />
         <CloseIcon className="closeIcon link" style={{display: closeIconDisplay}} onClick={this.closeSearchBar} />
-        <Container className="elasticSearchBar" style={{display: searchBarDisplay}}>{elasticSearch}</Container>
+        <Container className="elasticSearchBar" style={{display: searchBarDisplay}}>{elasticSearch}</Container>    
        <Collapse isOpen={this.state.isOpen} navbar>
         <Nav className="ml-auto " navbar color="white">
           <SearchIcon className="searchIcon topSpace link" style={{display: searchIconDisplay}} onClick={this.showSearchBar} />
@@ -264,6 +264,7 @@ class AppNavbar extends Component {
           </Nav>
         </Collapse>
       </Navbar>
+    
         <div  className="searchResultBlock" style={{display: searchResultBlockDisplay}}>{searchResults}</div>
         </div>
     );
