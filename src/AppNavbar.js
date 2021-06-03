@@ -11,11 +11,17 @@ import {
   DropdownMenu,
   DropdownItem,
   UncontrolledDropdown,
+  FormGroup,
+  Form, 
+  Input,
+  Container,
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import { withCookies } from "react-cookie";
 import AccountCircleOutlinedIcon from "@material-ui/icons/AccountCircleOutlined";
 import PowerSettingsNewOutlinedIcon from "@material-ui/icons/PowerSettingsNewOutlined";
+import SearchIcon from '@material-ui/icons/Search';
+import CloseIcon from '@material-ui/icons/Close';
 import localConfig from "./localConfig.json";
 
 class AppNavbar extends Component {
@@ -26,11 +32,15 @@ class AppNavbar extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { isOpen: false, dropdownOpen: false, orgDropdownOpen: false };
+    this.state = { isOpen: false, dropdownOpen: false, orgDropdownOpen: false, queryString: "", searchBarDisplay: "none", searchIconDisplay: "block", closeIconDisplay: "none", searchHits: null, searchResultBlockDisplay: "none" };
     this.toggle = this.toggle.bind(this);
     this.orgToggle = this.orgToggle.bind(this);
     this.eventToggle = this.eventToggle.bind(this);
     this.logout = this.logout.bind(this);
+    this.handleSearchBarChange = this.handleSearchBarChange.bind(this);
+    this.handleElasticSearch = this.handleElasticSearch.bind(this);
+    this.showSearchBar = this.showSearchBar.bind(this);
+    this.closeSearchBar = this.closeSearchBar.bind(this);
   }
 
   async componentDidMount() {
@@ -63,13 +73,13 @@ class AppNavbar extends Component {
     }));
   }
 
-  // onMouseEnter() {
-  //   this.setState({ dropdownOpen: true });
-  // }
+  showSearchBar(){
+    this.setState({searchIconDisplay: "none", searchBarDisplay: "block", closeIconDisplay: "block"});
+  }
 
-  // onMouseLeave() {
-  //   this.setState({ dropdownOpen: false });
-  // }
+  closeSearchBar(){
+    this.setState({searchIconDisplay: "block", searchBarDisplay: "none", closeIconDisplay: "none", searchResultBlockDisplay: "none"});
+  }
 
   logout() {
     let csrf = "XSRF-TOKEN";
@@ -105,16 +115,90 @@ class AppNavbar extends Component {
     // window.location.href = "/";
   }
 
+ async handleSearchBarChange(event){
+    event.preventDefault();
+    const val = event.target.value;
+    this.setState({queryString: val});
+    if (val.length > 2){
+    fetch(
+      "https://" +
+        localConfig.SERVICE.URL +
+        ":" +
+        localConfig.SERVICE.PORT +
+        `/api/elasticsearch/multi-field-index/${val}`,
+      { credentials: "include" }
+    )
+      .then((response) => response.json())
+      .then((data) => this.setState({ searchHits: data }))
+      this.setState({searchResultBlockDisplay: "block"});
+      }
+      else {
+        this.setState({searchResultBlockDisplay: "none"});
+      }
+  }
+
+  async handleElasticSearch(event) {
+    event.preventDefault();
+    const val = event.target.value;
+    console.log("Key press: " + val);
+  }
+
   render() {
-    const { firstName, orgDropdownOpen, eventDropdownOpen } = this.state;
+    const { firstName, orgDropdownOpen, eventDropdownOpen, queryString, searchBarDisplay, searchIconDisplay, closeIconDisplay, searchHits, searchResultBlockDisplay } = this.state;
+
+    const elasticSearch =  (
+      <Form>
+    <FormGroup>
+    <Input
+      type="search"
+      name="elasticsearch"
+      id="elasticsearch"
+      value={ queryString }
+      placeholder="Search for Orgs., events or contacts..."
+    //  onKeyPress={this.handleElasticSearch}
+      onChange={this.handleSearchBarChange}
+    />
+  </FormGroup>
+  </Form>
+  );
+
+  let hits = null;
+  if (searchHits !== null && searchHits.totalHits.value > 0){
+    hits = searchHits.hits.map((hit) => {
+         if (hit.index === "events"){
+           return <li className="listElementSpace" key={hit.sourceAsMap.id}><a className="customLink" href={"/event/read/" + hit.sourceAsMap.id}>{"Event | " + hit.sourceAsMap.eventName + " | " + hit.sourceAsMap.location}</a></li>
+         }
+         else if (hit.index === "organizations"){
+          return <li className="listElementSpace" key={hit.sourceAsMap.id}><a className="customLink" href={"/organization/read/" + hit.sourceAsMap.id}>{"Org. | " + hit.sourceAsMap.orgname }</a></li>
+         }
+         else if (hit.index === "contacts"){
+          return <li className="listElementSpace" key={hit.sourceAsMap.id}><a className="customLink" href={"/contact/read/" + hit.sourceAsMap.id}>{"Contact | " + hit.sourceAsMap.firstName + " " + hit.sourceAsMap.lastName }</a></li> 
+         }
+         else {
+           return null;
+         }
+      }
+        )
+  }
+  else if (queryString.length > 0){
+    hits = <span>No search results found...</span>
+  }
+  const searchResults = (
+    <ul className="noStyleList">{hits}</ul>
+  );
+
     return (
+    <div>
       <Navbar dark expand="md">
         <NavbarBrand tag={Link} to="/">
           <img alt="RTA" className="logo" src="/rta_logo.png"></img>
         </NavbarBrand>
         <NavbarToggler dark onClick={this.toggle} />
-        <Collapse isOpen={this.state.isOpen} navbar>
-          <Nav className="ml-auto " navbar color="white">
+        <CloseIcon className="closeIcon link" style={{display: closeIconDisplay}} onClick={this.closeSearchBar} />
+        <Container className="elasticSearchBar" style={{display: searchBarDisplay}}>{elasticSearch}</Container>    
+       <Collapse isOpen={this.state.isOpen} navbar>
+        <Nav className="ml-auto " navbar color="white">
+          <SearchIcon className="searchIcon topSpace link" style={{display: searchIconDisplay}} onClick={this.showSearchBar} />
             <Dropdown
               nav
               isOpen={orgDropdownOpen}
@@ -180,6 +264,9 @@ class AppNavbar extends Component {
           </Nav>
         </Collapse>
       </Navbar>
+    
+        <div  className="searchResultBlock" style={{display: searchResultBlockDisplay}}>{searchResults}</div>
+        </div>
     );
   }
 }
