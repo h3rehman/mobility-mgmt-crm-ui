@@ -432,7 +432,7 @@ class ContactList extends Component {
                 size="sm"
                 color="primary"
                 tag={Link}
-                to={"/contacts/" + contact.contactId}
+                to={"/contact/" + contact.contactId}
               >
                 Edit
               </Button>
