@@ -218,7 +218,7 @@ class ContactList extends Component {
       let tDate =
         parseInt(to.getDate()) > 9 ? to.getDate() : "0" + to.getDate();
       formattedToDate =
-        to.getFullYear() + "-" + tMonth + "-" + tDate + " 00:00:00";
+        to.getFullYear() + "-" + tMonth + "-" + tDate + " 23:59:00";    //Set last hour to get the complete selected day
 
       this.setState({
         dateRange: newRange,

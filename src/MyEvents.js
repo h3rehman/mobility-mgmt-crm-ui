@@ -307,7 +307,7 @@ class MyEvents extends Component {
       let tDate =
         parseInt(to.getDate()) > 9 ? to.getDate() : "0" + to.getDate();
       formattedToDate =
-        to.getFullYear() + "-" + tMonth + "-" + tDate + " 00:00:00";
+        to.getFullYear() + "-" + tMonth + "-" + tDate + " 23:59:00";
 
       this.setState({
         dateRange: newRange,
