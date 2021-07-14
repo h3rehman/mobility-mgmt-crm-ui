@@ -40,6 +40,9 @@ class MyCallLogs extends Component {
       pagedCallLogs: {},
       pages: [],
       currentPage: 0,
+      currentPaginationHop: 1,
+      maxPaginationHops: 1,
+      pageSelectionCount: 10,
       sortedField: null,
       sortOrder: null,
       dropdownOpen: false,
@@ -52,8 +55,10 @@ class MyCallLogs extends Component {
       csrfToken: cookies.get("XSRF-TOKEN"),
     };
     this.createPageArray = this.createPageArray.bind(this);
+    this.createCustomPageArray = this.createCustomPageArray(this);
     this.toggle = this.toggle.bind(this);
     this.pageLink = this.pageLink.bind(this);
+    this.pageHopLink = this.pageHopLink.bind(this);
     this.pageSizeLink = this.pageSizeLink.bind(this);
     this.getSortedField = this.getSortedField.bind(this);
     this.setDateRange = this.setDateRange.bind(this);
@@ -79,11 +84,43 @@ class MyCallLogs extends Component {
 
   async createPageArray() {
     const { pagedCallLogs } = this.state;
+    let { maxPaginationHops, pageSelectionCount } = this.state;
     let pages = [];
     let totalPages = pagedCallLogs.totalPages;
-    for (let i = 0; i < totalPages; i++) {
-      pages.push(i + 1);
+    maxPaginationHops = Math.ceil(totalPages/pageSelectionCount);
+
+    if (totalPages <= pageSelectionCount){
+      for(let i=0; i<totalPages; i++){
+        pages.push(i + 1);
+      }
     }
+    else {
+      for (let i=0; i<pageSelectionCount; i++){
+        pages.push(i + 1);
+      }
+    }
+    this.setState({ pages: pages, maxPaginationHops });
+  }
+
+  async createCustomPageArray() {
+    const { pagedCallLogs } = this.state;
+    let { currentPaginationHop, maxPaginationHops, pageSelectionCount } = this.state;
+    let pages = [];
+    let totalPages = pagedCallLogs.totalPages;
+    let start = (currentPaginationHop - 1) * 10;    
+
+    if (currentPaginationHop === maxPaginationHops){ //If last hop is reached use the remainder in modulus
+      let modulus = totalPages%pageSelectionCount; 
+      for (let i=start; i<modulus; i++){
+        pages.push(i+1);
+      }
+    }
+    else {
+      for (let i=start; i<start+pageSelectionCount; i++){
+        pages.push(i+1);
+      }
+    }
+
     this.setState({ pages: pages });
   }
 
@@ -150,6 +187,11 @@ class MyCallLogs extends Component {
     this.setState({ pagedCallLogs: fetchedPage, currentPage: page });
   }
 
+  async pageHopLink(hop){
+    this.setState({currentPaginationHop: hop});
+    this.createCustomPageArray();
+  }
+
   async pageSizeLink(size) {
     const {
       sortedField,
@@ -173,7 +215,7 @@ class MyCallLogs extends Component {
         }
       )
     ).json();
-    this.setState({ pagedCallLogs: fetchedPage, currentPage: 0 });
+    this.setState({ pagedCallLogs: fetchedPage, currentPage: 0, currentPaginationHop: 1 });
     this.createPageArray();
   }
 
@@ -216,9 +258,11 @@ class MyCallLogs extends Component {
     this.setState({
       pagedCallLogs: fetchedPage,
       currentPage: 0,
+      currentPaginationHop: 1,
       sortedField: fieldName,
       sortOrder,
     });
+    this.createPageArray();
   }
 
   async applyFilters() {
@@ -247,7 +291,7 @@ class MyCallLogs extends Component {
         }
       )
     ).json();
-    this.setState({ pagedCallLogs: fetchedPage, currentPage: 0 });
+    this.setState({ pagedCallLogs: fetchedPage, currentPage: 0, currentPaginationHop: 1 });
     this.createPageArray();
   }
 
@@ -302,17 +346,19 @@ class MyCallLogs extends Component {
       isLoading,
       pages,
       currentPage,
+      currentPaginationHop,
+      maxPaginationHops,
       dateRange,
       callLogStatuses,
       sortedField,
       sortOrder,
+      dropdownOpen,
     } = this.state;
 
-    const firstPageCheck = currentPage > 0 ? "" : "disabled";
-    const lastPageCheck =
-      currentPage === pagedCallLogs.totalPages - 1 ? "disabled" : "";
-    const { dropdownOpen } = this.state;
-
+    const firstPageHopCheck = currentPaginationHop > 1 ? "" : "disabled";
+    const lastPageHopCheck =
+      currentPaginationHop === maxPaginationHops ? "disabled" : "";
+   
     if (isLoading) {
       return (
         <div>
@@ -350,7 +396,7 @@ class MyCallLogs extends Component {
         </PaginationItem>
       );
     });
-    const pageSizeArray = [10, 20, 50, 100];
+    const pageSizeArray = [10, 20, 50, 100, 200];
     const pageSizesDropDown = pageSizeArray.map((size) => {
       const sizeCheck =
         size === pagedCallLogs.pageable.pagesize ? "disabled" : "";
@@ -366,35 +412,35 @@ class MyCallLogs extends Component {
 
     const pagination = (
       <Pagination aria-label="Navigate pages">
-        <PaginationItem className={firstPageCheck}>
+        <PaginationItem className={firstPageHopCheck}>
           <PaginationLink
             previous
             aria-label="First"
-            onClick={() => this.pageLink(0)}
+            onClick={() => this.pageHopLink(1)}
           />
         </PaginationItem>
-        <PaginationItem className={firstPageCheck}>
+        <PaginationItem className={firstPageHopCheck}>
           <PaginationLink
             aria-label="Previous"
-            onClick={() => this.pageLink(currentPage - 1)}
+            onClick={() => this.pageHopLink(currentPaginationHop - 1)}
           >
             {"<"}
           </PaginationLink>
         </PaginationItem>
         {pageNumbers}
-        <PaginationItem className={lastPageCheck}>
+        <PaginationItem className={lastPageHopCheck}>
           <PaginationLink
             aria-label="Next"
-            onClick={() => this.pageLink(currentPage + 1)}
+            onClick={() => this.pageHopLink(currentPaginationHop + 1)}
           >
             {">"}
           </PaginationLink>
         </PaginationItem>
-        <PaginationItem className={lastPageCheck}>
+        <PaginationItem className={lastPageHopCheck}>
           <PaginationLink
             next
             aria-label="Last"
-            onClick={() => this.pageLink(pagedCallLogs.totalPages - 1)}
+            onClick={() => this.pageHopLink(maxPaginationHops)}
           />
         </PaginationItem>
       </Pagination>
@@ -411,7 +457,6 @@ class MyCallLogs extends Component {
     let cdArrow = null;
     let lmdArrow = null;
     let orgArrow = null;
-    let statusArrow = null;
     if (sortOrder !== null) {
       if (sortOrder === "asce") {
         if (sortedField === "createDate") {
@@ -420,9 +465,7 @@ class MyCallLogs extends Component {
           orgArrow = <ArrowUpwardIcon />;
         } else if (sortedField === "lastModifiedDate") {
           lmdArrow = <ArrowUpwardIcon />;
-        } else if (sortedField === "status.lastStatus") {
-          statusArrow = <ArrowUpwardIcon />;
-        }
+        } 
       } else if (sortOrder === "desc") {
         if (sortedField === "createDate") {
           cdArrow = <ArrowDownwardIcon />;
@@ -430,9 +473,7 @@ class MyCallLogs extends Component {
           orgArrow = <ArrowDownwardIcon />;
         } else if (sortedField === "lastModifiedDate") {
           lmdArrow = <ArrowDownwardIcon />;
-        } else if (sortedField === "status.lastStatus") {
-          statusArrow = <ArrowDownwardIcon />;
-        }
+        } 
       }
     } else {
       cdArrow = <ArrowDownwardIcon />;
@@ -540,12 +581,8 @@ class MyCallLogs extends Component {
                 >
                   Org. Name {orgArrow}
                 </th>
-                <th
-                  className="link"
-                  width="10%"
-                  onClick={() => this.getSortedField("status.lastStatus")}
-                >
-                  Status set {statusArrow}{" "}
+                <th width="10%">
+                  Status set 
                 </th>
                 <th width="15%">Created by</th>
                 <th

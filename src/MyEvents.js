@@ -36,6 +36,9 @@ class MyEvents extends Component {
       pagedEvents: {},
       pages: [],
       currentPage: 0,
+      currentPaginationHop: 1,
+      maxPaginationHops: 1,
+      pageSelectionCount: 10,
       sortedField: null,
       sortOrder: null,
       dropdownOpen: false,
@@ -49,8 +52,10 @@ class MyEvents extends Component {
       upcomingEventsCheck: true,
     };
     this.createPageArray = this.createPageArray.bind(this);
+    this.createCustomPageArray = this.createCustomPageArray(this);
     this.pageLink = this.pageLink.bind(this);
     this.pageSizeLink = this.pageSizeLink.bind(this);
+    this.pageHopLink = this.pageHopLink.bind(this);
     this.getSortedField = this.getSortedField.bind(this);
     this.toggle = this.toggle.bind(this);
     this.setDateRange = this.setDateRange.bind(this);
@@ -111,13 +116,46 @@ class MyEvents extends Component {
 
   async createPageArray() {
     const { pagedEvents } = this.state;
+    let { maxPaginationHops, pageSelectionCount } = this.state;
     let pages = [];
     let totalPages = pagedEvents.totalPages;
-    for (let i = 0; i < totalPages; i++) {
-      pages.push(i + 1);
+    maxPaginationHops = Math.ceil(totalPages/pageSelectionCount);
+
+    if (totalPages <= pageSelectionCount){
+      for(let i=0; i<totalPages; i++){
+        pages.push(i + 1);
+      }
     }
+    else {
+      for (let i=0; i<pageSelectionCount; i++){
+        pages.push(i + 1);
+      }
+    }
+    this.setState({ pages: pages, maxPaginationHops });
+  }
+
+  async createCustomPageArray() {
+    const { pagedEvents } = this.state;
+    let { currentPaginationHop, maxPaginationHops, pageSelectionCount } = this.state;
+    let pages = [];
+    let totalPages = pagedEvents.totalPages;
+    let start = (currentPaginationHop - 1) * 10;    
+
+    if (currentPaginationHop === maxPaginationHops){ //If last hop is reached use the remainder in modulus
+      let modulus = totalPages%pageSelectionCount; 
+      for (let i=start; i<modulus; i++){
+        pages.push(i+1);
+      }
+    }
+    else {
+      for (let i=start; i<start+pageSelectionCount; i++){
+        pages.push(i+1);
+      }
+    }
+
     this.setState({ pages: pages });
   }
+
 
   async handleUpcomingEventsCheckbox (){
     await this.setState(prevState => ({
@@ -174,6 +212,11 @@ class MyEvents extends Component {
     this.setState({ pagedEvents: fetchedPage, currentPage: page });
   }
 
+  async pageHopLink(hop){
+    this.setState({currentPaginationHop: hop});
+    this.createCustomPageArray();
+  }
+
   async pageSizeLink(size) {
     const {
       sortedField,
@@ -200,7 +243,7 @@ class MyEvents extends Component {
         }
       )
     ).json();
-    this.setState({ pagedEvents: fetchedPage, currentPage: 0 });
+    this.setState({ pagedEvents: fetchedPage, currentPage: 0, currentPaginationHop: 1  });
     this.createPageArray();
   }
 
@@ -246,9 +289,11 @@ class MyEvents extends Component {
     this.setState({
       pagedEvents: fetchedPage,
       currentPage: 0,
+      currentPaginationHop: 1,
       sortedField: fieldName,
       sortOrder,
     });
+    this.createPageArray();
   }
 
   async applyFilters() {
@@ -280,7 +325,7 @@ class MyEvents extends Component {
         }
       )
     ).json();
-    this.setState({ pagedEvents: fetchedPage, currentPage: 0 });
+    this.setState({ pagedEvents: fetchedPage, currentPage: 0, currentPaginationHop: 1 });
     this.createPageArray();
   }
 
@@ -346,6 +391,8 @@ class MyEvents extends Component {
       isLoading,
       pages,
       currentPage,
+      currentPaginationHop,
+      maxPaginationHops,
       dateRange,
       eventTypes,
       eventStatuses,
@@ -355,9 +402,9 @@ class MyEvents extends Component {
       upcomingEventsCheck
     } = this.state;
 
-    const firstPageCheck = currentPage > 0 ? "" : "disabled";
-    const lastPageCheck =
-      currentPage === pagedEvents.totalPages - 1 ? "disabled" : "";
+    const firstPageHopCheck = currentPaginationHop > 1 ? "" : "disabled";
+    const lastPageHopCheck =
+      currentPaginationHop === maxPaginationHops ? "disabled" : "";
 
     if (isLoading) {
       return (
@@ -416,7 +463,7 @@ class MyEvents extends Component {
       );
     });
 
-    const pageSizeArray = [10, 20, 50, 100];
+    const pageSizeArray = [10, 20, 50, 100, 200];
     const pageSizesDropDown = pageSizeArray.map((size) => {
       const sizeCheck =
         size === pagedEvents.pageable.pageSize ? "disabled" : "";
@@ -432,35 +479,35 @@ class MyEvents extends Component {
 
     const pagination = (
       <Pagination aria-label="Navigate pages">
-        <PaginationItem className={firstPageCheck}>
+        <PaginationItem className={firstPageHopCheck}>
           <PaginationLink
             previous
             aria-label="First"
-            onClick={() => this.pageLink(0)}
+            onClick={() => this.pageHopLink(1)}
           />
         </PaginationItem>
-        <PaginationItem className={firstPageCheck}>
+        <PaginationItem className={firstPageHopCheck}>
           <PaginationLink
             aria-label="Previous"
-            onClick={() => this.pageLink(currentPage - 1)}
+            onClick={() => this.pageHopLink(currentPaginationHop - 1)}
           >
             {"<"}
           </PaginationLink>
         </PaginationItem>
         {pageNumbers}
-        <PaginationItem className={lastPageCheck}>
+        <PaginationItem className={lastPageHopCheck}>
           <PaginationLink
             aria-label="Next"
-            onClick={() => this.pageLink(currentPage + 1)}
+            onClick={() => this.pageHopLink(currentPaginationHop + 1)}
           >
             {">"}
           </PaginationLink>
         </PaginationItem>
-        <PaginationItem className={lastPageCheck}>
+        <PaginationItem className={lastPageHopCheck}>
           <PaginationLink
             next
             aria-label="Last"
-            onClick={() => this.pageLink(pagedEvents.totalPages - 1)}
+            onClick={() => this.pageHopLink(maxPaginationHops)}
           />
         </PaginationItem>
       </Pagination>
