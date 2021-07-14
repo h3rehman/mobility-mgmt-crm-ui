@@ -8,6 +8,8 @@ import { Button, ButtonGroup, Container, Table,   Pagination,
   DropdownItem,
   CustomInput, } from "reactstrap";
 import AppNavbar from "./AppNavbar";
+import FirstPageIcon from '@material-ui/icons/FirstPage';
+import LastPageIcon from '@material-ui/icons/LastPage';
 import FilterListIcon from "@material-ui/icons/FilterList";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
@@ -52,10 +54,9 @@ class MyEvents extends Component {
       upcomingEventsCheck: true,
     };
     this.createPageArray = this.createPageArray.bind(this);
-    this.createCustomPageArray = this.createCustomPageArray(this);
+    this.createCustomPageArray = this.createCustomPageArray.bind(this);
     this.pageLink = this.pageLink.bind(this);
     this.pageSizeLink = this.pageSizeLink.bind(this);
-    this.pageHopLink = this.pageHopLink.bind(this);
     this.getSortedField = this.getSortedField.bind(this);
     this.toggle = this.toggle.bind(this);
     this.setDateRange = this.setDateRange.bind(this);
@@ -134,26 +135,34 @@ class MyEvents extends Component {
     this.setState({ pages: pages, maxPaginationHops });
   }
 
-  async createCustomPageArray() {
+  async createCustomPageArray(hop) {
     const { pagedEvents } = this.state;
-    let { currentPaginationHop, maxPaginationHops, pageSelectionCount } = this.state;
+    let { maxPaginationHops, pageSelectionCount } = this.state;
     let pages = [];
     let totalPages = pagedEvents.totalPages;
-    let start = (currentPaginationHop - 1) * 10;    
-
-    if (currentPaginationHop === maxPaginationHops){ //If last hop is reached use the remainder in modulus
-      let modulus = totalPages%pageSelectionCount; 
-      for (let i=start; i<modulus; i++){
-        pages.push(i+1);
+    let start = (hop - 1) * 10;    
+  
+    if (totalPages > 0){
+      if (hop === maxPaginationHops){ //If last hop is reached use the remainder in modulus
+        let modulus = totalPages%pageSelectionCount; 
+        if (modulus > 0){
+          for (let i=start; i<start+modulus; i++){
+            pages.push(i+1);
+          }
+        }
+        else {
+          for (let i=start; i<start+pageSelectionCount; i++){
+            pages.push(i+1);   
+        }
+      }
+      }
+      else {
+        for (let i=start; i<start+pageSelectionCount; i++){
+          pages.push(i+1);
+        }
       }
     }
-    else {
-      for (let i=start; i<start+pageSelectionCount; i++){
-        pages.push(i+1);
-      }
-    }
-
-    this.setState({ pages: pages });
+    this.setState({ pages: pages, currentPaginationHop: hop });
   }
 
 
@@ -210,11 +219,6 @@ class MyEvents extends Component {
       )
     ).json();
     this.setState({ pagedEvents: fetchedPage, currentPage: page });
-  }
-
-  async pageHopLink(hop){
-    this.setState({currentPaginationHop: hop});
-    this.createCustomPageArray();
   }
 
   async pageSizeLink(size) {
@@ -481,15 +485,16 @@ class MyEvents extends Component {
       <Pagination aria-label="Navigate pages">
         <PaginationItem className={firstPageHopCheck}>
           <PaginationLink
-            previous
             aria-label="First"
-            onClick={() => this.pageHopLink(1)}
-          />
+            onClick={() => this.createCustomPageArray(1)}
+          >
+            <FirstPageIcon fontSize="small" />
+          </PaginationLink>
         </PaginationItem>
         <PaginationItem className={firstPageHopCheck}>
           <PaginationLink
             aria-label="Previous"
-            onClick={() => this.pageHopLink(currentPaginationHop - 1)}
+            onClick={() => this.createCustomPageArray(currentPaginationHop - 1)}
           >
             {"<"}
           </PaginationLink>
@@ -498,17 +503,18 @@ class MyEvents extends Component {
         <PaginationItem className={lastPageHopCheck}>
           <PaginationLink
             aria-label="Next"
-            onClick={() => this.pageHopLink(currentPaginationHop + 1)}
+            onClick={() => this.createCustomPageArray(currentPaginationHop + 1)}
           >
             {">"}
           </PaginationLink>
         </PaginationItem>
         <PaginationItem className={lastPageHopCheck}>
           <PaginationLink
-            next
             aria-label="Last"
-            onClick={() => this.pageHopLink(maxPaginationHops)}
-          />
+            onClick={() => this.createCustomPageArray(maxPaginationHops)}
+          >
+          <LastPageIcon fontSize="small" />
+          </PaginationLink>  
         </PaginationItem>
       </Pagination>
     );
