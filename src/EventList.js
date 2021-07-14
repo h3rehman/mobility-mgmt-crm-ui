@@ -3,6 +3,8 @@ import { Button, ButtonGroup, Container, Table } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
+import FirstPageIcon from '@material-ui/icons/FirstPage';
+import LastPageIcon from '@material-ui/icons/LastPage';
 import FilterListIcon from "@material-ui/icons/FilterList";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
@@ -39,6 +41,9 @@ class EventList extends Component {
       isLoading: true,
       pages: [],
       currentPage: 0,
+      currentPaginationHop: 1,
+      maxPaginationHops: 1,
+      pageSelectionCount: 10,
       sortedField: null,
       sortOrder: null,
       dropdownOpen: false,
@@ -51,6 +56,7 @@ class EventList extends Component {
       statusFiltered: [],
     };
     this.createPageArray = this.createPageArray.bind(this);
+    this.createCustomPageArray = this.createCustomPageArray.bind(this);
     this.pageLink = this.pageLink.bind(this);
     this.pageSizeLink = this.pageSizeLink.bind(this);
     this.getSortedField = this.getSortedField.bind(this);
@@ -112,13 +118,54 @@ class EventList extends Component {
 
   async createPageArray() {
     const { pagedEvents } = this.state;
+    let { maxPaginationHops, pageSelectionCount } = this.state;
     let pages = [];
     let totalPages = pagedEvents.totalPages;
-    for (let i = 0; i < totalPages; i++) {
-      pages.push(i + 1);
+    maxPaginationHops = Math.ceil(totalPages/pageSelectionCount);
+
+    if (totalPages <= pageSelectionCount){
+      for(let i=0; i<totalPages; i++){
+        pages.push(i + 1);
+      }
     }
-    this.setState({ pages: pages });
+    else {
+      for (let i=0; i<pageSelectionCount; i++){
+        pages.push(i + 1);
+      }
+    }
+    this.setState({ pages: pages, maxPaginationHops });
   }
+
+  async createCustomPageArray(hop) {
+    const { pagedEvents } = this.state;
+    let { maxPaginationHops, pageSelectionCount } = this.state;
+    let pages = [];
+    let totalPages = pagedEvents.totalPages;
+    let start = (hop - 1) * 10;    
+  
+    if (totalPages > 0){
+      if (hop === maxPaginationHops){ //If last hop is reached use the remainder in modulus
+        let modulus = totalPages%pageSelectionCount; 
+        if (modulus > 0){
+          for (let i=start; i<start+modulus; i++){
+            pages.push(i+1);
+          }
+        }
+        else {
+          for (let i=start; i<start+pageSelectionCount; i++){
+            pages.push(i+1);   
+        }
+      }
+      }
+      else {
+        for (let i=start; i<start+pageSelectionCount; i++){
+          pages.push(i+1);
+        }
+      }
+    }
+    this.setState({ pages: pages, currentPaginationHop: hop });
+  }
+
 
   eventTypesQueryURL(eveTypesArray) {
     const queryURL = eveTypesArray
@@ -168,7 +215,7 @@ class EventList extends Component {
     this.setState({ pagedEvents: fetchedPage, currentPage: page });
   }
 
-  async pageSizeLink(size) {
+    async pageSizeLink(size) {
     const {
       sortedField,
       sortOrder,
@@ -193,7 +240,7 @@ class EventList extends Component {
         }
       )
     ).json();
-    this.setState({ pagedEvents: fetchedPage, currentPage: 0 });
+    this.setState({ pagedEvents: fetchedPage, currentPage: 0, currentPaginationHop: 1 });
     this.createPageArray();
   }
 
@@ -238,9 +285,11 @@ class EventList extends Component {
     this.setState({
       pagedEvents: fetchedPage,
       currentPage: 0,
+      currentPaginationHop: 1,
       sortedField: fieldName,
       sortOrder,
     });
+    this.createPageArray();
   }
 
   async applyFilters() {
@@ -271,7 +320,7 @@ class EventList extends Component {
         }
       )
     ).json();
-    this.setState({ pagedEvents: fetchedPage, currentPage: 0 });
+    this.setState({ pagedEvents: fetchedPage, currentPage: 0, currentPaginationHop: 1  });
     this.createPageArray();
   }
 
@@ -298,7 +347,7 @@ class EventList extends Component {
       let tDate =
         parseInt(to.getDate()) > 9 ? to.getDate() : "0" + to.getDate();
       formattedToDate =
-        to.getFullYear() + "-" + tMonth + "-" + tDate + " 00:00:00";
+        to.getFullYear() + "-" + tMonth + "-" + tDate + " 23:59:00";
 
       this.setState({
         dateRange: newRange,
@@ -336,6 +385,8 @@ class EventList extends Component {
       isLoading,
       pages,
       currentPage,
+      currentPaginationHop,
+      maxPaginationHops,
       dateRange,
       eventTypes,
       eventStatuses,
@@ -344,9 +395,9 @@ class EventList extends Component {
       dropdownOpen,
     } = this.state;
 
-    const firstPageCheck = currentPage > 0 ? "" : "disabled";
-    const lastPageCheck =
-      currentPage === pagedEvents.totalPages - 1 ? "disabled" : "";
+    const firstPageHopCheck = currentPaginationHop > 1 ? "" : "disabled";
+    const lastPageHopCheck =
+      currentPaginationHop === maxPaginationHops ? "disabled" : "";
 
     if (isLoading) {
       return (
@@ -405,7 +456,7 @@ class EventList extends Component {
       );
     });
 
-    const pageSizeArray = [10, 20, 50, 100];
+    const pageSizeArray = [10, 20, 50, 100, 200];
     const pageSizesDropDown = pageSizeArray.map((size) => {
       const sizeCheck =
         size === pagedEvents.pageable.pageSize ? "disabled" : "";
@@ -421,36 +472,38 @@ class EventList extends Component {
 
     const pagination = (
       <Pagination aria-label="Navigate pages">
-        <PaginationItem className={firstPageCheck}>
+        <PaginationItem className={firstPageHopCheck}>
           <PaginationLink
-            previous
             aria-label="First"
-            onClick={() => this.pageLink(0)}
-          />
+            onClick={() => this.createCustomPageArray(1)}
+         >
+          <FirstPageIcon fontSize="small" />
+          </PaginationLink>
         </PaginationItem>
-        <PaginationItem className={firstPageCheck}>
+        <PaginationItem className={firstPageHopCheck}>
           <PaginationLink
             aria-label="Previous"
-            onClick={() => this.pageLink(currentPage - 1)}
+            onClick={() => this.createCustomPageArray(currentPaginationHop - 1)}
           >
             {"<"}
           </PaginationLink>
         </PaginationItem>
         {pageNumbers}
-        <PaginationItem className={lastPageCheck}>
+        <PaginationItem className={lastPageHopCheck}>
           <PaginationLink
             aria-label="Next"
-            onClick={() => this.pageLink(currentPage + 1)}
+            onClick={() => this.createCustomPageArray(currentPaginationHop + 1)}
           >
             {">"}
           </PaginationLink>
         </PaginationItem>
-        <PaginationItem className={lastPageCheck}>
+        <PaginationItem className={lastPageHopCheck}>
           <PaginationLink
-            next
             aria-label="Last"
-            onClick={() => this.pageLink(pagedEvents.totalPages - 1)}
-          />
+            onClick={() => this.createCustomPageArray(maxPaginationHops)}
+          >
+          <LastPageIcon fontSize="small" />
+          </PaginationLink>
         </PaginationItem>
       </Pagination>
     );
