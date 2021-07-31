@@ -10,6 +10,7 @@ import {
   Input,
   Label,
 } from "reactstrap";
+import phoneFormat from "./phoneFormat";
 import EditableLabel from "react-inline-editing";
 import DeleteIcon from "@material-ui/icons/Delete";
 import Alert from "@material-ui/lab/Alert";
@@ -344,14 +345,16 @@ class OrgRead extends Component {
     let contacts = "";
     if (item.orgContacts.length > 0) {
       const contactList = item.orgContacts.map((contact) => {
+        let phoneFormattedPrimary = phoneFormat(contact.phone);
+        let phoneFormattedSecondary = phoneFormat(contact.altPhone);
         return (
           <tr key={contact.contactId}>
             <td style={{ whiteSpace: "nowrap" }}>{contact.firstName}</td>
             <td>{contact.lastName}</td>
             <td>{contact.title}</td>
             <td>{contact.email}</td>
-            <td>{contact.phone}</td>
-            <td>{contact.altPhone}</td>
+            <td>{phoneFormattedPrimary}</td>
+            <td>{phoneFormattedSecondary}</td>
             <td>
               <ButtonGroup>
                 <Button
@@ -786,7 +789,7 @@ class OrgRead extends Component {
             </div>
             <div className="row paraSpace">
               <div>
-                <span className="field">Corporate Phone:</span> {item.phone}
+                <span className="field">Corporate Phone:</span> {phoneFormat(item.phone)}
               </div>
               <div>
                 <span className="field fieldSpace">Corporate Email:</span>

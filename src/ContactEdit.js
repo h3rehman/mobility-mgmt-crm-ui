@@ -10,6 +10,8 @@ import {
   ButtonGroup,
   Table,
 } from "reactstrap";
+import phoneFormat from "./phoneFormat";
+import cleanPhoneNumber from "./cleanPhoneNumber";
 import AppNavbar from "./AppNavbar";
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
@@ -99,7 +101,14 @@ class ContactEdit extends Component {
     const value = target.value;
     const name = target.name;
     let contact = { ...this.state.contact };
-    contact[name] = value;
+    if (name === "phone" || name === "altPhone"){
+      let cleanNumber = cleanPhoneNumber(value);
+      console.log(name + " " + cleanNumber);
+      contact[name] = cleanNumber;
+    }
+    else {
+      contact[name] = value;
+    }
     this.setState({ contact });
   }
 
@@ -358,7 +367,7 @@ class ContactEdit extends Component {
                   type="text"
                   name="phone"
                   id="phone"
-                  value={contact.phone || ""}
+                  value={phoneFormat(contact.phone) || ""}
                   onChange={this.handleChange}
                   autoComplete="phone"
                 />
@@ -369,7 +378,7 @@ class ContactEdit extends Component {
                   type="text"
                   name="altPhone"
                   id="altPhone"
-                  value={contact.altPhone || ""}
+                  value={phoneFormat(contact.altPhone) || ""}
                   onChange={this.handleChange}
                   autoComplete="altPhone"
                 />

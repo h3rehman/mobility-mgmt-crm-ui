@@ -15,6 +15,7 @@ import {
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
+import phoneFormat from "./phoneFormat";
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FilterListIcon from "@material-ui/icons/FilterList";
@@ -452,6 +453,8 @@ class ContactList extends Component {
           });
       }
 
+      let phoneFormatted = phoneFormat(contact.phone);
+
       return (
         <tr className="small-font" key={contact.contactId}>
           <td style={{ whiteSpace: "nowrap" }}>
@@ -478,7 +481,7 @@ class ContactList extends Component {
           </td>
           <td>{contact.title}</td>
           <td>{contact.email}</td>
-          <td>{contact.phone}</td>
+          <td>{phoneFormatted}</td>
           <td>{lastContactDate}</td>
           <td>
             <ButtonGroup>
