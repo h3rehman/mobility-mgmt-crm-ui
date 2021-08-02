@@ -10,6 +10,7 @@ import {
   ButtonGroup,
   Table,
 } from "reactstrap";
+import phoneFormat from "./phoneFormat";
 import AppNavbar from "./AppNavbar";
 import EditableLabel from "react-inline-editing";
 import DeleteIcon from "@material-ui/icons/Delete";
@@ -492,11 +493,11 @@ class ContactRead extends Component {
                 <span className="field">Email:</span> {contact.email}
               </div>
               <div>
-                <span className="field fieldSpace">Phone:</span> {contact.phone}
+                <span className="field fieldSpace">Phone:</span> {phoneFormat(contact.phone)}
               </div>
               <div>
                 <span className="field fieldSpace">Alt. Phone:</span>{" "}
-                {contact.altPhone}
+                {phoneFormat(contact.altPhone)}
               </div>
             </div>
             <div className="row paraSpace">

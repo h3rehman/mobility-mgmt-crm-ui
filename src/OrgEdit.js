@@ -10,6 +10,8 @@ import {
   ButtonGroup,
   Table,
 } from "reactstrap";
+import phoneFormat from "./phoneFormat";
+import cleanPhoneNumber from "./cleanPhoneNumber";
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import AppNavbar from "./AppNavbar";
@@ -124,7 +126,13 @@ class OrgEdit extends Component {
     const value = target.value;
     const name = target.name;
     let newConObj = { ...this.state.conObj };
-    newConObj[name] = value;
+    if (name === "phone" || name === "altPhone"){
+      let cleanNumber = cleanPhoneNumber(value);
+      newConObj[name] = cleanNumber;
+    }
+    else{
+      newConObj[name] = value;
+    }
     this.setState({ conObj: newConObj });
   }
 
@@ -133,7 +141,13 @@ class OrgEdit extends Component {
     const value = target.value;
     const name = target.name;
     let item = { ...this.state.item };
-    item[name] = value;
+    if (name === "phone"){
+      let cleanNumber = cleanPhoneNumber(value);
+      item[name] = cleanNumber;
+    }
+    else {
+      item[name] = value;
+    }
     this.setState({ item });
   }
 
@@ -228,7 +242,6 @@ class OrgEdit extends Component {
       window.scrollTo(0, 0);
       await new Promise((r) => setTimeout(r, 2000));
       for (var pair of headerEntries) {
-        console.log(pair[0] + ": " + pair[1]);
         if (pair[0] === "location") {
           let loc = pair[1].toString();
           postId = loc.split("/").pop();
@@ -489,7 +502,7 @@ class OrgEdit extends Component {
                 type="text"
                 name="phone"
                 id="phone"
-                value={conObj.phone || ""}
+                value={phoneFormat(conObj.phone) || ""}
                 onChange={this.handleConChange}
                 autoComplete="phone"
               />
@@ -500,7 +513,7 @@ class OrgEdit extends Component {
                 type="text"
                 name="altPhone"
                 id="altPhone"
-                value={conObj.altPhone || ""}
+                value={phoneFormat(conObj.altPhone) || ""}
                 onChange={this.handleConChange}
                 autoComplete="altPhone"
               />
@@ -528,14 +541,16 @@ class OrgEdit extends Component {
     let contactList = "";
     if (item.orgContacts.length > 0) {
       contactList = item.orgContacts.map((contact) => {
+        let phoneFormatted = phoneFormat(contact.phone);
+        let phoneFormattedAlt = phoneFormat(contact.altPhone);
         return (
           <tr key={contact.contactId}>
             <td style={{ whiteSpace: "nowrap" }}>{contact.firstName}</td>
             <td>{contact.lastName}</td>
             <td>{contact.title}</td>
             <td>{contact.email}</td>
-            <td>{contact.phone}</td>
-            <td>{contact.altPhone}</td>
+            <td>{phoneFormatted}</td>
+            <td>{phoneFormattedAlt}</td>
             <td>
               <ButtonGroup>
                 <Button
@@ -937,7 +952,7 @@ class OrgEdit extends Component {
                     type="text"
                     name="phone"
                     id="phone"
-                    value={item.phone || ""}
+                    value={phoneFormat(item.phone) || ""}
                     onChange={this.handleChange}
                     autoComplete="address-level1"
                   />
