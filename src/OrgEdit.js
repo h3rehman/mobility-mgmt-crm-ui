@@ -128,7 +128,6 @@ class OrgEdit extends Component {
     let newConObj = { ...this.state.conObj };
     if (name === "phone" || name === "altPhone"){
       let cleanNumber = cleanPhoneNumber(value);
-      console.log(name + " " + cleanNumber);
       newConObj[name] = cleanNumber;
     }
     else{
@@ -144,7 +143,6 @@ class OrgEdit extends Component {
     let item = { ...this.state.item };
     if (name === "phone"){
       let cleanNumber = cleanPhoneNumber(value);
-      console.log(name + " " + cleanNumber);
       item[name] = cleanNumber;
     }
     else {
@@ -244,7 +242,6 @@ class OrgEdit extends Component {
       window.scrollTo(0, 0);
       await new Promise((r) => setTimeout(r, 2000));
       for (var pair of headerEntries) {
-        console.log(pair[0] + ": " + pair[1]);
         if (pair[0] === "location") {
           let loc = pair[1].toString();
           postId = loc.split("/").pop();

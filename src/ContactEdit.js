@@ -103,7 +103,6 @@ class ContactEdit extends Component {
     let contact = { ...this.state.contact };
     if (name === "phone" || name === "altPhone"){
       let cleanNumber = cleanPhoneNumber(value);
-      console.log(name + " " + cleanNumber);
       contact[name] = cleanNumber;
     }
     else {
