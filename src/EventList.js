@@ -3,6 +3,7 @@ import { Button, ButtonGroup, Container, Table } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
+import ReactExport from "react-export-excel";
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FilterListIcon from "@material-ui/icons/FilterList";
@@ -35,6 +36,7 @@ class EventList extends Component {
   constructor(props) {
     super(props);
     const { cookies } = props;
+  
     this.state = {
       pagedEvents: {},
       csrfToken: cookies.get("XSRF-TOKEN"),
@@ -395,6 +397,10 @@ class EventList extends Component {
       dropdownOpen,
     } = this.state;
 
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
     const firstPageHopCheck = currentPaginationHop > 1 ? "" : "disabled";
     const lastPageHopCheck =
       currentPaginationHop === maxPaginationHops ? "disabled" : "";
@@ -652,6 +658,28 @@ class EventList extends Component {
             </Button>
           </div>
         </Container>
+        <div className="float-right">
+        <ExcelFile element={<Button>Download</Button>}>
+                <ExcelSheet data={pagedEvents.content} name="Events-export">
+                    <ExcelColumn label="Event Name" value="eventName"/>
+                    <ExcelColumn label="Event Type" value="eventTypeDesc"/>
+                    <ExcelColumn label="Last Status" value="lastStatus"/>
+                    <ExcelColumn label="Location" value="location"/>
+                    <ExcelColumn label="Organization" value={(col) => Object.entries(col.orgNames).flat().filter( item => typeof(item) === "object").flat().filter((element, index) => index % 2 === 0).join(", ") }/>
+                    <ExcelColumn label="Event Presenters" value={(col) => col.eventPresenters.join(", ") } />
+                    <ExcelColumn label="Address" value="address"/>
+                    <ExcelColumn label="City" value="city"/>
+                    <ExcelColumn label="State" value="state"/>
+                    <ExcelColumn label="Zip" value="zip"/>
+                    <ExcelColumn label="Start Time" value="startDateTime"/>
+                    <ExcelColumn label="End Time" value="endDateTime"/>
+                    <ExcelColumn label="Audience Type" value={(col) => col.eventaudienceType.join(", ") }/>
+                    <ExcelColumn label="RTA Staff Count" value="rtaStaffCount"/>
+                    <ExcelColumn label="Audience Count" value="audienceCount"/>
+                    <ExcelColumn label="Survey Complete" value={(col) => col.surveyComplete === 0 ? "False" : "True"}/>
+                </ExcelSheet>
+        </ExcelFile>
+        </div>
         <Container>
           <h3 className="headLineSpace">Events</h3>
 
