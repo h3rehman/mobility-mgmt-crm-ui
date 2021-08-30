@@ -15,12 +15,15 @@ import {
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
+import ReactExport from "react-export-excel";
 import phoneFormat from "./phoneFormat";
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FilterListIcon from "@material-ui/icons/FilterList";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import DownloadIcon from '@material-ui/icons/GetApp';
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
@@ -54,6 +57,8 @@ class ContactList extends Component {
       dateRange: [],
       fromDate: null,
       toDate: null,
+      allExportedContacts: "",
+      allContactsExportTrigger: false,
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.createCustomPageArray = this.createCustomPageArray.bind(this);
@@ -62,6 +67,7 @@ class ContactList extends Component {
     this.getSortedField = this.getSortedField.bind(this);
     this.setDateRange = this.setDateRange.bind(this);
     this.toggle = this.toggle.bind(this);
+    this.exportAllContacts = this.exportAllContacts.bind(this);
   }
 
   async componentDidMount() {
@@ -280,6 +286,56 @@ class ContactList extends Component {
     }
   }
 
+  async exportAllContacts() {
+
+    let { allContactsExportTrigger } = this.state;
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
+    if (allContactsExportTrigger === false){
+ 
+      const exportedContacts = await (
+        await fetch(
+          "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/all-contacts-export",
+          {
+            credentials: "include",
+          }
+          )
+          ).json();
+          
+          const excelExport =  
+          (
+      <ExcelFile filename="All-Contacts" hideElement={true} >
+          <ExcelSheet data={exportedContacts} name="All-Contacts-export">
+              <ExcelColumn label="First Name" value="firstName"/>
+              <ExcelColumn label="Last Name" value="lastName"/>
+              <ExcelColumn label="Title" value="title"/>
+              <ExcelColumn label="Last contact date" value="lastContactDate"/>
+              <ExcelColumn label="Email" value="email"/>
+              <ExcelColumn label="Organization(s)" value={(col) => Object.entries(col.contactOrgs).flat().filter((element, i) => i % 2 === 1).join(", ") }/>
+              <ExcelColumn label="Phone" value="phone"/>
+              <ExcelColumn label="Alt. Phone" value="altPhone"/>
+              <ExcelColumn label="Create date" value="createDate"/>
+              <ExcelColumn label="Last modified" value="lastModifiedDate"/>
+              <ExcelColumn label="Created by" value="createdBy"/>
+              <ExcelColumn label="Last modified by" value="lastModifiedBy"/>
+          </ExcelSheet>
+      </ExcelFile> 
+      );
+      this.setState({allExportedContacts: excelExport, allContactsExportTrigger: true});
+    }
+    else {
+      const excelExport = <span className="mono-font">"Please refresh browser & try again."</span> 
+      this.setState({allExportedContacts: excelExport});
+    }
+
+  }
+
   render() {
     const {
       isLoading,
@@ -292,7 +348,12 @@ class ContactList extends Component {
       sortOrder,
       dropdownOpen,
       dateRange,
+      allExportedContacts,
     } = this.state;
+
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
     const firstPageHopCheck = currentPaginationHop > 1 ? "" : "disabled";
     const lastPageHopCheck =
@@ -503,11 +564,48 @@ class ContactList extends Component {
       <div>
         <AppNavbar />
         <Container>
-          <div className="float-right">
+          <div className="headLineSpace float-right">
             <Button color="success" tag={Link} to="/contact/new">
               Create Contact
             </Button>
           </div>
+          <div className="exportButton">
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<CloudDownloadIcon style={{ color: "#4287f5" }} />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+              <Typography className="petiteCaps">Export</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+              <div style={{"margin-left": "-1rem"}}>
+              <ExcelFile filename="Contacts-Export" element={<Button color="white" ><DownloadIcon fontSize="small" /><span className="petiteCaps">Current view</span></Button>} >
+                  <ExcelSheet data={pagedContacts.content} name="Contacts-export">
+                      <ExcelColumn label="First Name" value="firstName"/>
+                      <ExcelColumn label="Last Name" value="lastName"/>
+                      <ExcelColumn label="Title" value="title"/>
+                      <ExcelColumn label="Last contact date" value="lastContactDate"/>
+                      <ExcelColumn label="Email" value="email"/>
+                      <ExcelColumn label="Organization(s)" value={(col) => Object.entries(col.contactOrgs).flat().filter((element, i) => i % 2 === 1).join(", ") }/>
+                      <ExcelColumn label="Phone" value="phone"/>
+                      <ExcelColumn label="Alt. Phone" value="altPhone"/>
+                      <ExcelColumn label="Create date" value="createDate"/>
+                      <ExcelColumn label="Last modified" value="lastModifiedDate"/>
+                      <ExcelColumn label="Created by" value="createdBy"/>
+                      <ExcelColumn label="Last modified by" value="lastModifiedBy"/>
+                  </ExcelSheet>
+              </ExcelFile> 
+                </div>
+                <div className="row">
+                <Button color="white" onClick={() => this.exportAllContacts()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">All contacts</span></Button>
+                <div>{allExportedContacts}</div>
+                </div>
+              </AccordionDetails>
+            </Accordion>
+          </div>
+        </Container>
+        <Container>
           <h3 className="headLineSpace">Contacts</h3>
           <div className="float-left">{filterAccordion}</div>
           <Table className="mt-4" responsive bordered hover>
