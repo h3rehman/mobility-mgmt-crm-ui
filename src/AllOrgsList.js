@@ -16,11 +16,14 @@ import {
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
+import ReactExport from "react-export-excel";
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FilterListIcon from "@material-ui/icons/FilterList";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import DownloadIcon from '@material-ui/icons/GetApp';
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
@@ -53,6 +56,8 @@ class AllOrgsList extends Component {
       countiesFiltered: [],
       allStatus: [],
       statusFiltered: [],
+      allExportedOrgs: "",
+      allOrgsExportTrigger: false,
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.createCustomPageArray = this.createCustomPageArray.bind(this);
@@ -65,6 +70,7 @@ class AllOrgsList extends Component {
     this.filterStatus = this.filterStatus.bind(this);
     this.countiesQueryURL = this.countiesQueryURL.bind(this);
     this.statusesQueryURL = this.statusesQueryURL.bind(this);
+    this.exportAllOrgs = this.exportAllOrgs.bind(this);
   }
 
   async componentDidMount() {
@@ -330,6 +336,54 @@ class AllOrgsList extends Component {
     this.createPageArray();
   }
 
+  async exportAllOrgs() {
+
+    let { allOrgsExportTrigger } = this.state;
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
+    if (allOrgsExportTrigger === false){
+ 
+      const exportedOrgs = await (
+        await fetch(
+          "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/organizations",
+          {
+            credentials: "include",
+          }
+          )
+          ).json();
+          
+          const excelExport =  
+          (
+      <ExcelFile filename="All-Orgs" hideElement={true} >
+          <ExcelSheet data={exportedOrgs} name="All-Orgs-export">
+              <ExcelColumn label="Org. Name" value="orgname"/>
+              <ExcelColumn label="Last status" value="lastStatus"/>
+              <ExcelColumn label="Last contact" value="lastContact"/>
+              <ExcelColumn label="County" value="countyName"/>
+              <ExcelColumn label="Address" value="address"/>
+              <ExcelColumn label="City" value="city"/>
+              <ExcelColumn label="Org. Email" value="email"/>
+              <ExcelColumn label="Org. Phone" value="phone"/>
+              <ExcelColumn label="Org. contacts" value={(col) => col.orgContacts.map(contact => contact.firstName + " " + contact.lastName).join(", ") }/>
+              <ExcelColumn label="Zip" value="zip"/>
+          </ExcelSheet>
+      </ExcelFile> 
+      );
+      this.setState({allExportedOrgs: excelExport, allOrgsExportTrigger: true});
+    }
+    else {
+      const excelExport = <span className="mono-font">"Please refresh browser & try again."</span> 
+      this.setState({allExportedOrgs: excelExport});
+    }
+
+  }
+
   render() {
     const {
       isLoading,
@@ -343,7 +397,12 @@ class AllOrgsList extends Component {
       counties,
       allStatus,
       dropdownOpen,
+      allExportedOrgs,
     } = this.state;
+
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
     const firstPageHopCheck = currentPaginationHop > 1 ? "" : "disabled";
     const lastPageHopCheck =
@@ -576,12 +635,47 @@ class AllOrgsList extends Component {
       <div>
         <AppNavbar />
         <Container>
-          <div className="float-right">
+          <div className="headLineSpace float-right">
             <Button color="success" tag={Link} to="/organizations/new">
               Create Organization
             </Button>
           </div>
-          <h3>Organizations</h3>
+          <div className="exportButton">
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<CloudDownloadIcon style={{ color: "#4287f5" }} />}
+            aria-controls="panel1a-content"
+            id="panel1a-header"
+          >
+          <Typography className="petiteCaps">Export</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+          <div style={{"margin-left": "-1rem"}}>
+            <ExcelFile filename="Orgs-export" element={<Button color="white" ><DownloadIcon fontSize="small" /><span className="petiteCaps">Current view</span></Button>}>
+                  <ExcelSheet data={pagedOrgs.content} name="Orgs-export">
+                      <ExcelColumn label="Org. Name" value="orgname"/>
+                      <ExcelColumn label="Last status" value="lastStatus"/>
+                      <ExcelColumn label="Last contact" value="lastContact"/>
+                      <ExcelColumn label="County" value="countyName"/>
+                      <ExcelColumn label="Address" value="address"/>
+                      <ExcelColumn label="City" value="city"/>
+                      <ExcelColumn label="Org. Email" value="email"/>
+                      <ExcelColumn label="Org. Phone" value="phone"/>
+                      <ExcelColumn label="Org. contacts" value={(col) => col.orgContacts.map(contact => contact.firstName + " " + contact.lastName).join(", ") }/>
+                      <ExcelColumn label="Zip" value="zip"/>
+                  </ExcelSheet>
+              </ExcelFile>
+            </div>
+            <div className="row">
+            <Button color="white" onClick={() => this.exportAllOrgs()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">All orgs</span></Button>
+            <div>{allExportedOrgs}</div>
+            </div>
+          </AccordionDetails>
+        </Accordion>
+          </div>
+        </Container>
+        <Container>
+          <h3 className="headLineSpace">Organizations</h3>
           <div className="float-left">{filterAccordion}</div>
           <Table className="mt-4" responsive bordered hover>
             <thead>

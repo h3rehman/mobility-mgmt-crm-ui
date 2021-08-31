@@ -29,6 +29,10 @@
   font-weight: lighter;
 }
 
+.petiteCaps {
+  font-variant: all-petite-caps;
+}
+
 .login-box {
   position: absolute;
   top: 30%;
@@ -221,6 +225,10 @@ a.customLink:hover {
   margin-left: 1rem;
 }
 
+.leftMarginExtraSpace {
+  margin-left: 4rem;
+}
+
 .headLineSpace {
   padding-bottom: 2rem;
 }
@@ -244,6 +252,12 @@ a.customLink:hover {
 .fiter-spacing {
   padding-left: 1rem;
   padding-right: 1rem;
+}
+
+.exportButton {
+  float: right;
+  margin-right: -7.5rem;
+  margin-top: 4.5rem;
 }
 /*Alert*/
 .warning-color {

@@ -3,11 +3,14 @@ import { Button, ButtonGroup, Container, Table } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
 import { instanceOf } from "prop-types";
+import ReactExport from "react-export-excel";
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FilterListIcon from "@material-ui/icons/FilterList";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import DownloadIcon from '@material-ui/icons/GetApp';
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
@@ -35,6 +38,7 @@ class EventList extends Component {
   constructor(props) {
     super(props);
     const { cookies } = props;
+  
     this.state = {
       pagedEvents: {},
       csrfToken: cookies.get("XSRF-TOKEN"),
@@ -54,6 +58,8 @@ class EventList extends Component {
       eventTypesFiltered: [],
       eventStatuses: [],
       statusFiltered: [],
+      allExportedEvents: "",
+      allEventsExportTrigger: false,
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.createCustomPageArray = this.createCustomPageArray.bind(this);
@@ -64,6 +70,7 @@ class EventList extends Component {
     this.setDateRange = this.setDateRange.bind(this);
     this.filterEventTypes = this.filterEventTypes.bind(this);
     this.filterStatus = this.filterStatus.bind(this);
+    this.exportAllEvents = this.exportAllEvents.bind(this);
   }
 
   async componentDidMount() {
@@ -379,6 +386,60 @@ class EventList extends Component {
     this.setState({ statusFiltered });
   };
 
+  async exportAllEvents() {
+
+    let { allEventsExportTrigger } = this.state;
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
+    if (allEventsExportTrigger === false){
+ 
+      const exportedEvents = await (
+        await fetch(
+          "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/events",
+          {
+            credentials: "include",
+          }
+          )
+          ).json();
+          
+          const excelExport =  
+          (
+      <ExcelFile filename="All-Events" hideElement={true} >
+          <ExcelSheet data={exportedEvents} name="All-Events-export">
+              <ExcelColumn label="Event Name" value="eventName"/>
+              <ExcelColumn label="Event Type" value="eventTypeDesc"/>
+              <ExcelColumn label="Last Status" value="lastStatus"/>
+              <ExcelColumn label="Location" value="location"/>
+              <ExcelColumn label="Organization" value={(col) => Object.entries(col.orgNames).flat().filter( item => typeof(item) === "object").flat().filter((element, index) => index % 2 === 0).join(", ") }/>
+              <ExcelColumn label="Event Presenters" value={(col) => col.eventPresenters.join(", ") } />
+              <ExcelColumn label="Address" value="address"/>
+              <ExcelColumn label="City" value="city"/>
+              <ExcelColumn label="State" value="state"/>
+              <ExcelColumn label="Zip" value="zip"/>
+              <ExcelColumn label="Start Time" value="startDateTime"/>
+              <ExcelColumn label="End Time" value="endDateTime"/>
+              <ExcelColumn label="Audience Type" value={(col) => col.eventaudienceType.join(", ") }/>
+              <ExcelColumn label="RTA Staff Count" value="rtaStaffCount"/>
+              <ExcelColumn label="Audience Count" value="audienceCount"/>
+              <ExcelColumn label="Survey Complete" value={(col) => col.surveyComplete === 0 ? "False" : "True"}/>
+          </ExcelSheet>
+      </ExcelFile> 
+      );
+      this.setState({allExportedEvents: excelExport, allEventsExportTrigger: true});
+    }
+    else {
+      const excelExport = <span className="mono-font">"Please refresh browser & try again."</span> 
+      this.setState({allExportedEvents: excelExport});
+    }
+
+  }
+
   render() {
     const {
       pagedEvents,
@@ -393,7 +454,12 @@ class EventList extends Component {
       sortedField,
       sortOrder,
       dropdownOpen,
+      allExportedEvents,
     } = this.state;
+
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
     const firstPageHopCheck = currentPaginationHop > 1 ? "" : "disabled";
     const lastPageHopCheck =
@@ -646,10 +712,49 @@ class EventList extends Component {
       <div>
         <AppNavbar />
         <Container>
-          <div className="float-right">
-            <Button color="success" tag={Link} to="/events/new">
-              Create Event
-            </Button>
+          <div className="headLineSpace float-right">
+              <Button color="success" tag={Link} to="/events/new">
+                Create Event
+              </Button>
+          </div>
+          <div className="exportButton">
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<CloudDownloadIcon style={{ color: "#4287f5" }} />}
+            aria-controls="panel1a-content"
+            id="panel1a-header"
+          >
+          <Typography className="petiteCaps">Export</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+          <div style={{"margin-left": "-1rem"}}>
+          <ExcelFile filename="Events-export" element={<Button color="white" ><DownloadIcon fontSize="small" /><span className="petiteCaps">Current view</span></Button>}>
+                    <ExcelSheet data={pagedEvents.content} name="Events-export">
+                        <ExcelColumn label="Event Name" value="eventName"/>
+                        <ExcelColumn label="Event Type" value="eventTypeDesc"/>
+                        <ExcelColumn label="Last Status" value="lastStatus"/>
+                        <ExcelColumn label="Location" value="location"/>
+                        <ExcelColumn label="Organization" value={(col) => Object.entries(col.orgNames).flat().filter( item => typeof(item) === "object").flat().filter((element, index) => index % 2 === 0).join(", ") }/>
+                        <ExcelColumn label="Event Presenters" value={(col) => col.eventPresenters.join(", ") } />
+                        <ExcelColumn label="Address" value="address"/>
+                        <ExcelColumn label="City" value="city"/>
+                        <ExcelColumn label="State" value="state"/>
+                        <ExcelColumn label="Zip" value="zip"/>
+                        <ExcelColumn label="Start Time" value="startDateTime"/>
+                        <ExcelColumn label="End Time" value="endDateTime"/>
+                        <ExcelColumn label="Audience Type" value={(col) => col.eventaudienceType.join(", ") }/>
+                        <ExcelColumn label="RTA Staff Count" value="rtaStaffCount"/>
+                        <ExcelColumn label="Audience Count" value="audienceCount"/>
+                        <ExcelColumn label="Survey Complete" value={(col) => col.surveyComplete === 0 ? "False" : "True"}/>
+                    </ExcelSheet>
+            </ExcelFile>
+            </div>
+            <div className="row">
+            <Button color="white" onClick={() => this.exportAllEvents()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">All events</span></Button>
+            <div>{allExportedEvents}</div>
+            </div>
+          </AccordionDetails>
+        </Accordion>
           </div>
         </Container>
         <Container>
