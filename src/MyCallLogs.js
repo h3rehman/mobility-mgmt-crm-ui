@@ -15,11 +15,14 @@ import {
 } from "reactstrap";
 import AppNavbar from "./AppNavbar";
 import { Link } from "react-router-dom";
+import ReactExport from "react-export-excel";
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FilterListIcon from "@material-ui/icons/FilterList";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import DownloadIcon from '@material-ui/icons/GetApp';
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
@@ -48,6 +51,7 @@ class MyCallLogs extends Component {
       sortedField: null,
       sortOrder: null,
       dropdownOpen: false,
+      onlyMyCallLogs: true,
       dateRange: [],
       fromDate: null,
       toDate: null,
@@ -55,6 +59,12 @@ class MyCallLogs extends Component {
       statusFiltered: [],
       isLoading: true,
       csrfToken: cookies.get("XSRF-TOKEN"),
+      allExportedCallLogs: "",
+      allMyExportedCallLogs:"",
+      viewExportedCallLogs: "",
+      allCallLogsExportTrigger: false,
+      allMyCallLogsExportTrigger: false,
+      callLogsViewExportTrigger: false, 
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.createCustomPageArray = this.createCustomPageArray.bind(this);
@@ -65,6 +75,10 @@ class MyCallLogs extends Component {
     this.setDateRange = this.setDateRange.bind(this);
     this.filterStatus = this.filterStatus.bind(this);
     this.callOrgStatuses = this.callOrgStatuses.bind(this);
+    this.handleOnlyMyCallLogsCheck = this.handleOnlyMyCallLogsCheck.bind(this);
+    this.exportAllCallLogs = this.exportAllCallLogs.bind(this);
+    this.exportAllMyCallLogs = this.exportAllMyCallLogs.bind(this);
+    this.exportCurrentView = this.exportCurrentView.bind(this);
   }
 
   async componentDidMount() {
@@ -176,6 +190,7 @@ class MyCallLogs extends Component {
       fromDate,
       toDate,
       statusFiltered,
+      onlyMyCallLogs,
     } = this.state;
     const pageSize = pagedCallLogs.pageable.pageSize;
 
@@ -187,7 +202,7 @@ class MyCallLogs extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/call-logs-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${statusQuery}`,
+          `/api/call-logs-filtered-sorted/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${onlyMyCallLogs}?${statusQuery}`,
         {
           credentials: "include",
         }
@@ -203,6 +218,7 @@ class MyCallLogs extends Component {
       fromDate,
       toDate,
       statusFiltered,
+      onlyMyCallLogs,
     } = this.state;
 
     let statusQuery = this.statusesQueryURL(statusFiltered);
@@ -213,7 +229,7 @@ class MyCallLogs extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/call-logs-filtered-sorted/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${statusQuery}`,
+          `/api/call-logs-filtered-sorted/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${onlyMyCallLogs}?${statusQuery}`,
         {
           credentials: "include",
         }
@@ -230,6 +246,7 @@ class MyCallLogs extends Component {
       fromDate,
       toDate,
       statusFiltered,
+      onlyMyCallLogs,
     } = this.state;
     let { sortOrder } = this.state;
 
@@ -253,7 +270,7 @@ class MyCallLogs extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/call-logs-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}?${statusQuery}`,
+    `/api/call-logs-filtered-sorted/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}/${onlyMyCallLogs}?${statusQuery}`,
         {
           credentials: "include",
         }
@@ -277,6 +294,7 @@ class MyCallLogs extends Component {
       fromDate,
       toDate,
       statusFiltered,
+      onlyMyCallLogs,
     } = this.state;
 
     const pageSize = pagedCallLogs.pageable.pageSize;
@@ -289,7 +307,7 @@ class MyCallLogs extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/call-logs-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}?${statusQuery}`,
+          `/api/call-logs-filtered-sorted/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${onlyMyCallLogs}?${statusQuery}`,
         {
           credentials: "include",
         }
@@ -344,6 +362,153 @@ class MyCallLogs extends Component {
     this.setState({ statusFiltered });
   };
 
+  async handleOnlyMyCallLogsCheck (){
+    let {onlyMyCallLogs} = this.state;
+    console.log("Initial value: " + onlyMyCallLogs);
+    await this.setState(prevState => ({
+      onlyMyCallLogs: !prevState.onlyMyCallLogs
+    }));
+    let newState = this.state.onlyMyCallLogs;
+    console.log("Final value: " + newState);
+  }
+
+  async exportAllCallLogs() {
+
+    let { allCallLogsExportTrigger } = this.state;
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
+    if (allCallLogsExportTrigger === false){
+ 
+      const exportedCallLogs = await (
+        await fetch(
+          "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/all-callLogs-export",
+          {
+            credentials: "include",
+          }
+          )
+          ).json();
+          
+          const excelExport =  
+          (
+      <ExcelFile filename="All-CallLogs" hideElement={true} >
+          <ExcelSheet data={exportedCallLogs} name="All-callLogs-export">
+              <ExcelColumn label="Organization" value={(col) => col.callLog.org !== null ? col.callLog.org.orgName : ""}/>
+              <ExcelColumn label="Contact" value={(col) => col.callLog.contact !== null ? col.callLog.contact.contactName : ""}/>
+              <ExcelColumn label="Status" value={(col) => col.callLog.status !== null ? col.callLog.status.lastStatus : ""}/>
+              <ExcelColumn label="Note" value="noteEntry"/>
+              <ExcelColumn label="Date created" value="createDate"/>
+              <ExcelColumn label="Created by" value={(col) => col.callLog.createdBy }/>
+              <ExcelColumn label="Last modified on" value="lastModifiedDate"/>
+              <ExcelColumn label="Last modified by" value={(col) => col.callLog.lastModifiedBy}/>
+          </ExcelSheet>
+      </ExcelFile> 
+      );
+      this.setState({allExportedCallLogs: excelExport, allCallLogsExportTrigger: true});
+    }
+    else {
+      const excelExport = <span className="mono-font">"Please refresh browser & try again."</span> 
+      this.setState({allExportedCallLogs: excelExport});
+    }
+  }
+
+  async exportAllMyCallLogs() {
+
+    let { allMyCallLogsExportTrigger } = this.state;
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
+    if (allMyCallLogsExportTrigger === false){
+ 
+      const exportedCallLogs = await (
+        await fetch(
+          "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/all-my-callLogs-export",
+          {
+            credentials: "include",
+          }
+          )
+          ).json();
+          
+          const excelExport =  
+          (
+      <ExcelFile filename="All-My-CallLogs" hideElement={true} >
+          <ExcelSheet data={exportedCallLogs} name="All-my-callLogs-export">
+              <ExcelColumn label="Organization" value={(col) => col.callLog.org !== null ? col.callLog.org.orgName : ""}/>
+              <ExcelColumn label="Contact" value={(col) => col.callLog.contact !== null ? col.callLog.contact.contactName : ""}/>
+              <ExcelColumn label="Status" value={(col) => col.callLog.status !== null ? col.callLog.status.lastStatus : ""}/>
+              <ExcelColumn label="Note" value="noteEntry"/>
+              <ExcelColumn label="Date created" value="createDate"/>
+              <ExcelColumn label="Created by" value={(col) => col.callLog.createdBy }/>
+              <ExcelColumn label="Last modified on" value="lastModifiedDate"/>
+              <ExcelColumn label="Last modified by" value={(col) => col.callLog.lastModifiedBy}/>
+          </ExcelSheet>
+      </ExcelFile> 
+      );
+      this.setState({allMyExportedCallLogs: excelExport, allMyCallLogsExportTrigger: true});
+    }
+    else {
+      const excelExport = <span className="mono-font">"Please refresh browser & try again."</span> 
+      this.setState({allMyExportedCallLogs: excelExport});
+    }
+  }
+
+  async exportCurrentView() {
+    let {pagedCallLogs, callLogsViewExportTrigger} = this.state;
+    let callLogsIdQueryURL = pagedCallLogs.content.map((callLog) => "cid=" + callLog.callId).join("&");
+
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
+    if (callLogsViewExportTrigger === false){
+ 
+      const exportedCallLogs = await (
+        await fetch(
+          "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/callLogs-view-export?${callLogsIdQueryURL}`,
+          {
+            credentials: "include",
+          }
+          )
+          ).json();
+          
+          const excelExport =  
+          (
+      <ExcelFile filename="CallLogs-view" hideElement={true} >
+          <ExcelSheet data={exportedCallLogs} name="callLogs-view-export">
+              <ExcelColumn label="Organization" value={(col) => col.callLog.org !== null ? col.callLog.org.orgName : ""}/>
+              <ExcelColumn label="Contact" value={(col) => col.callLog.contact !== null ? col.callLog.contact.contactName : ""}/>
+              <ExcelColumn label="Status" value={(col) => col.callLog.status !== null ? col.callLog.status.lastStatus : ""}/>
+              <ExcelColumn label="Note" value="noteEntry"/>
+              <ExcelColumn label="Date created" value="createDate"/>
+              <ExcelColumn label="Created by" value={(col) => col.callLog.createdBy }/>
+              <ExcelColumn label="Last modified on" value="lastModifiedDate"/>
+              <ExcelColumn label="Last modified by" value={(col) => col.callLog.lastModifiedBy}/>
+          </ExcelSheet>
+      </ExcelFile> 
+      );
+      this.setState({viewExportedCallLogs: excelExport, callLogsViewExportTrigger: true});
+    }
+    else {
+      const excelExport = <span className="mono-font">"Please refresh browser & try again."</span> 
+      this.setState({viewExportedCallLogs: excelExport});
+    }
+  }
+
+
   render() {
     const {
       pagedCallLogs,
@@ -357,7 +522,10 @@ class MyCallLogs extends Component {
       sortedField,
       sortOrder,
       dropdownOpen,
+      onlyMyCallLogs,
     } = this.state;
+
+    let { allExportedCallLogs, allMyExportedCallLogs, viewExportedCallLogs} = this.state;
 
     const firstPageHopCheck = currentPaginationHop > 1 ? "" : "disabled";
     const lastPageHopCheck =
@@ -493,6 +661,18 @@ class MyCallLogs extends Component {
       />
     );
 
+    const onlyMyCallLogsCheckbox = (
+      <CustomInput
+      key={"onlyMyCallLogs"}
+      bsSize="lg"
+      checked={onlyMyCallLogs}
+      type="checkbox"
+      id={"onlyMyCallLogs"}
+      label={"Show only my Call-Logs"}
+      onChange={this.handleOnlyMyCallLogsCheck}
+    />
+    );
+
     const filterAccordion = (
       <Accordion>
         <AccordionSummary
@@ -511,6 +691,7 @@ class MyCallLogs extends Component {
               {statusCheckBoxes}
             </div>
           </div>
+          <div className="paraSpace">{onlyMyCallLogsCheckbox}</div>
           <div>
             <Button onClick={() => this.applyFilters()}>Apply Filters</Button>
           </div>
@@ -567,14 +748,39 @@ class MyCallLogs extends Component {
       <div>
         <AppNavbar />
         <Container>
-          <div className="float-right">
+          <div className="headLineSpace float-right">
             <Button color="success" tag={Link} to="/callLog/new">
               Create Call Log
             </Button>
           </div>
+          <div className="exportButton">
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<CloudDownloadIcon style={{ color: "#4287f5" }} />}
+            aria-controls="panel1a-content"
+            id="panel1a-header"
+          >
+          <Typography className="petiteCaps">Export</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <div className="row">
+              <Button color="white" onClick={() => this.exportCurrentView()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">Current View</span></Button>
+              <div>{viewExportedCallLogs}</div>
+            </div>
+            <div className="row">
+              <Button color="white" onClick={() => this.exportAllMyCallLogs()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">All My Call-Logs</span></Button>
+              <div>{allMyExportedCallLogs}</div>
+            </div>
+            <div className="row">
+              <Button color="white" onClick={() => this.exportAllCallLogs()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">All Call-Logs</span></Button>
+              <div>{allExportedCallLogs}</div>
+            </div>
+          </AccordionDetails>
+        </Accordion>
+          </div>
         </Container>
         <Container>
-          <h4>My Call Logs</h4>
+          <h4 className="headLineSpace">My Call Logs</h4>
 
           <div className="float-left">{filterAccordion}</div>
           <Table className="mt-4" responsive bordered hover>
