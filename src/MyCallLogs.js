@@ -772,7 +772,12 @@ class MyCallLogs extends Component {
               <div>{allMyExportedCallLogs}</div>
             </div>
             <div className="row">
-              <Button color="white" onClick={() => this.exportAllCallLogs()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">All Call-Logs</span></Button>
+              <Button color="white" onClick={() => this.exportAllCallLogs()} >
+              <DownloadIcon style={{float: "left"}} fontSize="small" />
+              <span style={{float: "left"}} className="petiteCaps">All Call-Logs</span>
+              <br></br>
+              <span className="sub-font"><i>(Only exports logs with note)</i></span>
+              </Button>
               <div>{allExportedCallLogs}</div>
             </div>
           </AccordionDetails>
