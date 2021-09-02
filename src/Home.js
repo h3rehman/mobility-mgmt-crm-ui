@@ -87,11 +87,18 @@ class Home extends Component {
               See your schedule by clicking below button or see all your
               appointments in the Events tab above.
             </p>
-            <p className="lead">
+            <p className="headLineSpace lead">
               <Button color="primary" href="/myoutreach">
                 My Outreach Schedule
               </Button>
+              <Button style={{"margin-left": "2rem"}} color="primary" href="/callLogs/myLogs">
+                My Call-Logs
+              </Button>
             </p>
+            <p>
+            <span style={{"float": "right"}} className="petite-font">Version 2.0</span>
+            </p>
+
           </Jumbotron>
         </Container>
       </div>
@@ -108,10 +115,12 @@ class Home extends Component {
             <span className="mmTitle">Mobility Management</span> <br></br>{" "}
             <span className="mmSubTitle">Outreach Tracking</span>
           </h4>
-
-          <Button color="primary" onClick={this.login}>
+      <Button color="primary" onClick={this.login}>
             <b>RTA Employee Login</b>
           </Button>
+          <br></br>
+          <br></br>
+          <span className="petite-font">Version 2.0</span>
         </div>
       </div>
     );
