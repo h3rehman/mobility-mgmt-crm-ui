@@ -108,7 +108,7 @@ class Home extends Component {
           <img
             alt="Mobilty Services Logo"
             className="ms-logo"
-            src="/ms-logo.png"
+            src="/ms-logo.svg"
           ></img>
 
           <h4 className="login-title">
