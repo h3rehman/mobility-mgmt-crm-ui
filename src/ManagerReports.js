@@ -58,6 +58,7 @@ class ManagerReports extends Component {
       allEventsExportTrigger: false,
       activePresenters: null,
       reportCalled: false,
+      currentPresenterId: -1,
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.createCustomPageArray = this.createCustomPageArray.bind(this);
@@ -69,7 +70,7 @@ class ManagerReports extends Component {
     this.filterEventTypes = this.filterEventTypes.bind(this);
     this.filterStatus = this.filterStatus.bind(this);
     this.handleUpcomingEventsCheckbox = this.handleUpcomingEventsCheckbox.bind(this);
-    this.exportMyAllEvents = this.exportMyAllEvents.bind(this);
+    this.exportMOCAllEvents = this.exportMOCAllEvents.bind(this);
     this.getPresenterDefaultEventsView = this.getPresenterDefaultEventsView.bind(this);
   }
 
@@ -100,7 +101,7 @@ class ManagerReports extends Component {
         { credentials: "include" }
       )
         .then((response) => response.json())
-        .then((data) => this.setState({ pagedEvents: data, reportCalled: true }))
+        .then((data) => this.setState({ pagedEvents: data, reportCalled: true, currentPresenterId: presenterId }))
         .then(() => this.createPageArray());
   
         if (this.state.eventTypes.length === 0){
@@ -225,6 +226,7 @@ class ManagerReports extends Component {
       eventTypesFiltered,
       statusFiltered,
       upcomingEventsCheck,
+      currentPresenterId,
     } = this.state;
     const pageSize = pagedEvents.pageable.pageSize;
 
@@ -237,7 +239,7 @@ class ManagerReports extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/sorted-filtered-myevents/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-presenter-events/${currentPresenterId}/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -255,6 +257,7 @@ class ManagerReports extends Component {
       eventTypesFiltered,
       statusFiltered,
       upcomingEventsCheck,
+      currentPresenterId,
     } = this.state;
 
     let eveTypesQuery = this.eventTypesQueryURL(eventTypesFiltered);
@@ -266,7 +269,7 @@ class ManagerReports extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/sorted-filtered-myevents/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-presenter-events/${currentPresenterId}/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -285,6 +288,7 @@ class ManagerReports extends Component {
       eventTypesFiltered,
       statusFiltered,
       upcomingEventsCheck,
+      currentPresenterId,
     } = this.state;
     let { sortOrder } = this.state;
 
@@ -309,7 +313,7 @@ class ManagerReports extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/sorted-filtered-myevents/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-presenter-events/${currentPresenterId}/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -335,6 +339,7 @@ class ManagerReports extends Component {
       toDate,
       statusFiltered,
       upcomingEventsCheck,
+      currentPresenterId,
     } = this.state;
 
     const pageSize = pagedEvents.pageable.pageSize;
@@ -348,7 +353,7 @@ class ManagerReports extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/sorted-filtered-myevents/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-presenter-events/${currentPresenterId}/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -394,28 +399,35 @@ class ManagerReports extends Component {
   }
 
   filterEventTypes = (eveType) => (e) => {
+    console.log("Event type: " + eveType);
     let { eventTypesFiltered } = this.state;
     if (e.target.checked === true) {
+      console.log("Pushed event...");
       eventTypesFiltered.push(eveType);
+      console.log(eventTypesFiltered);
     } else {
+      console.log("filtered event");
       eventTypesFiltered = eventTypesFiltered.filter((x) => x !== eveType);
+      console.log(eventTypesFiltered);
     }
     this.setState({ eventTypesFiltered });
   };
 
   filterStatus = (status) => (e) => {
+    console.log("Filter status called..." + e.target.checked);
     let { statusFiltered } = this.state;
     if (e.target.checked === true) {
       statusFiltered.push(status);
     } else {
       statusFiltered = statusFiltered.filter((x) => x !== status);
     }
+    console.log(statusFiltered);
     this.setState({ statusFiltered });
   };
 
-  async exportMyAllEvents() {
+  async exportMOCAllEvents() {
 
-    let { allEventsExportTrigger } = this.state;
+    let { allEventsExportTrigger, currentPresenterId } = this.state;
     const ExcelFile = ReactExport.ExcelFile;
     const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
     const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
@@ -428,7 +440,7 @@ class ManagerReports extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          "/api/all-my-events-export",
+          `/api/all-moc-events-export/${currentPresenterId}`,
           {
             credentials: "include",
           }
@@ -437,7 +449,7 @@ class ManagerReports extends Component {
           
           const excelExport =  
           (
-      <ExcelFile filename="All-My-Events" hideElement={true} >
+      <ExcelFile filename="All-MOC-Events" hideElement={true} >
           <ExcelSheet data={exportedEvents} name="All-My-Events-export">
               <ExcelColumn label="Event Name" value="eventName"/>
               <ExcelColumn label="Event Type" value="eventTypeDesc"/>
@@ -528,10 +540,11 @@ class ManagerReports extends Component {
 
     let eventTypesCheckBoxes = null;
 
-    if (eventTypes !== null) {
+    if (reportCalled && eventTypes.length > 0) {
       eventTypesCheckBoxes = eventTypes.map((type) => {
         return (
           <CustomInput
+            name={type.eventTypeDesc}
             key={type.eventTypeId}
             // checked={type.eventTypeDesc}
             type="checkbox"
@@ -842,7 +855,7 @@ class ManagerReports extends Component {
    ): "";
 
    const exportAccordion = reportCalled ? (
-    <div className="exportButton">
+    <div className="exportManagerReportsButton">
      <Accordion>
       <AccordionSummary
         expandIcon={<CloudDownloadIcon style={{ color: "#4287f5" }} />}
@@ -853,7 +866,7 @@ class ManagerReports extends Component {
       </AccordionSummary>
     <AccordionDetails>
       <div style={{"margin-left": "-1rem"}}>
-        <ExcelFile filename="My-Outreach-export" element={<Button color="white" ><DownloadIcon fontSize="small" /><span className="petiteCaps">Current view</span></Button>}>
+        <ExcelFile filename="Manager-Report-export" element={<Button color="white" ><DownloadIcon fontSize="small" /><span className="petiteCaps">Current view</span></Button>}>
             <ExcelSheet data={pagedEvents.content} name="My-Outreach-export">
                 <ExcelColumn label="Event Name" value="eventName"/>
                 <ExcelColumn label="Event Type" value="eventTypeDesc"/>
@@ -875,7 +888,7 @@ class ManagerReports extends Component {
           </ExcelFile>
         </div>
         <div className="row">
-        <Button color="white" onClick={() => this.exportMyAllEvents()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">All events</span></Button>
+        <Button color="white" onClick={() => this.exportMOCAllEvents()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">MOC's all events</span></Button>
         <div>{allExportedEvents}</div>
         </div>
      </AccordionDetails>
@@ -889,7 +902,7 @@ class ManagerReports extends Component {
         <AppNavbar />
         <Container>
         <h4 className="headLineSpace">Manager Reports</h4>  
-          <div className="headLineSpace float-left">
+          <div className="headLineSpace">
           <Accordion>
               <AccordionSummary
                 expandIcon={<AssessmentIcon />}
@@ -903,11 +916,14 @@ class ManagerReports extends Component {
               </AccordionDetails>
             </Accordion> 
           </div>
-          {exportAccordion}
+       
         </Container>
         <Container>
-          <div className="float-left">{filterAccordion}</div>
-            {eventTable}
+        <div className="float-left">{filterAccordion}</div>
+        {exportAccordion}
+        </Container>
+        <Container>
+           {eventTable}
           <div>{noUpcomingEvents}</div>
         </Container>
         <Container>
