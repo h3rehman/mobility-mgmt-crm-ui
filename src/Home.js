@@ -15,7 +15,10 @@ class Home extends Component {
   constructor(props) {
     super(props);
     const { cookies } = props;
-    this.state.csrfToken = cookies.get("XSRF-TOKEN");
+    this.state = {
+      managerNav: "none",
+      csrfToken: cookies.get("XSRF-TOKEN"),
+    }
     this.login = this.login.bind(this);
   }
 
@@ -42,11 +45,23 @@ class Home extends Component {
     //   }
     // }
     else {
-      console.log(body);
       this.setState({ isAuthenticated: true, user: JSON.parse(body) });
       let props = this.props;
       props.cookies.set("firstName", this.state.user.firstName, { path: "/" });
       props.cookies.set("isAuth", true, { path: "/" });
+      const managerCheck = await (
+        await fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          "/api/checkUserManagerialAccess",
+        { credentials: "include" }
+        )
+      ).json();
+      if (managerCheck === true){
+        this.setState({managerNav: "block"});
+      }
     }
   }
 
@@ -61,6 +76,7 @@ class Home extends Component {
 
   render() {
     const cooks = document.cookie;
+    const { managerNav } = this.state; 
     // let authCookieIndex = document.cookie.indexOf("isAuth");
     // if (authCookieIndex > -1) {
     //   let isAuth = this.props.cookies.get("isAuth");
@@ -72,7 +88,7 @@ class Home extends Component {
     // }
     const welcome_page_body = this.state.isAuthenticated ? (
       <div>
-        <AppNavbar />
+        <AppNavbar managerReports = {managerNav}  />
         <Container style={{ float: "left" }}>
           <Jumbotron>
             <h3 className="display-4">Mobility Management</h3>

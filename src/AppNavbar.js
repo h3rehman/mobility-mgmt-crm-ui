@@ -187,6 +187,12 @@ class AppNavbar extends Component {
     <ul className="noStyleList">{hits}</ul>
   );
 
+  const managerReportsNav = (
+    <DropdownItem style={{display: this.props.managerReports}} href="/manager-reports">
+      Manager Reports
+    </DropdownItem>
+  );
+
     return (
     <div>
       <Navbar dark expand="md">
@@ -255,6 +261,7 @@ class AppNavbar extends Component {
                 <DropdownItem href="/myoutreach">
                   Outreach Schedule
                 </DropdownItem>
+                {managerReportsNav}
                 <DropdownItem divider />
                 <DropdownItem onClick={this.logout}>
                   <PowerSettingsNewOutlinedIcon fontSize="small" /> Logout

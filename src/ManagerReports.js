@@ -10,6 +10,7 @@ import ReactExport from "react-export-excel";
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FilterListIcon from "@material-ui/icons/FilterList";
+import AssessmentIcon from "@material-ui/icons/Assessment";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
 import Accordion from "@material-ui/core/Accordion";
@@ -25,7 +26,7 @@ import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
 import localConfig from "./localConfig.json";
 
-class MyEvents extends Component {
+class ManagerReports extends Component {
   static propTypes = {
     cookies: instanceOf(Cookies).isRequired,
   };
@@ -55,6 +56,9 @@ class MyEvents extends Component {
       upcomingEventsCheck: true,
       allExportedEvents: "",
       allEventsExportTrigger: false,
+      activePresenters: null,
+      reportCalled: false,
+      currentPresenterId: -1,
     };
     this.createPageArray = this.createPageArray.bind(this);
     this.createCustomPageArray = this.createCustomPageArray.bind(this);
@@ -66,51 +70,69 @@ class MyEvents extends Component {
     this.filterEventTypes = this.filterEventTypes.bind(this);
     this.filterStatus = this.filterStatus.bind(this);
     this.handleUpcomingEventsCheckbox = this.handleUpcomingEventsCheckbox.bind(this);
-    this.exportMyAllEvents = this.exportMyAllEvents.bind(this);
+    this.exportMOCAllEvents = this.exportMOCAllEvents.bind(this);
+    this.getPresenterDefaultEventsView = this.getPresenterDefaultEventsView.bind(this);
   }
 
   async componentDidMount() {
     this.setState({ isLoading: true });
-
+    //change this call to also include isManager check.
     fetch(
-      "https://" +
-        localConfig.SERVICE.URL +
-        ":" +
-        localConfig.SERVICE.PORT +
-        "/api/sorted-default-myevents",
-      { credentials: "include" }
-    )
-      .then((response) => response.json())
-      .then((data) => this.setState({ pagedEvents: data, isLoading: false }))
-      .then(() => this.createPageArray());
-
-      const fetchedEventTypes = await (
-        await fetch(
           "https://" +
             localConfig.SERVICE.URL +
             ":" +
             localConfig.SERVICE.PORT +
-            "/api/all-event-types",
+            "/api/activePresenters",
           {
             credentials: "include",
           }
-        )
-      ).json();
-      //load event status types
-      const fetchedEventStatusTypes = await (
-        await fetch(
-          "https://" +
-            localConfig.SERVICE.URL +
-            ":" +
-            localConfig.SERVICE.PORT +
-            `/api/eventStatusTypes`,
-          { credentials: "include" }
-        )
-      ).json();
-      this.setState({
-        eventTypes: fetchedEventTypes,
-        eventStatuses: fetchedEventStatusTypes,
-      });
+        ).then((response) => response.json())
+        .then((data) => this.setState({ activePresenters: data, isLoading: false }));
+
+  }
+
+  async getPresenterDefaultEventsView(presenterId){
+    fetch(
+        "https://" +
+          localConfig.SERVICE.URL +
+          ":" +
+          localConfig.SERVICE.PORT +
+          `/api/sorted-default-presenter-events/${presenterId}`,
+        { credentials: "include" }
+      )
+        .then((response) => response.json())
+        .then((data) => this.setState({ pagedEvents: data, reportCalled: true, currentPresenterId: presenterId }))
+        .then(() => this.createPageArray());
+  
+        if (this.state.eventTypes.length === 0){
+            const fetchedEventTypes = await (
+              await fetch(
+                "https://" +
+                  localConfig.SERVICE.URL +
+                  ":" +
+                  localConfig.SERVICE.PORT +
+                  "/api/all-event-types",
+                {
+                  credentials: "include",
+                }
+              )
+            ).json();
+            this.setState({ eventTypes: fetchedEventTypes });
+        }
+        //load event status types
+        if (this.state.eventStatuses.length === 0){
+            const fetchedEventStatusTypes = await (
+                await fetch(
+                  "https://" +
+                    localConfig.SERVICE.URL +
+                    ":" +
+                    localConfig.SERVICE.PORT +
+                    `/api/eventStatusTypes`,
+                  { credentials: "include" }
+                )
+              ).json();
+        this.setState({ eventStatuses: fetchedEventStatusTypes });
+        }
   }
 
   toggle() {
@@ -204,6 +226,7 @@ class MyEvents extends Component {
       eventTypesFiltered,
       statusFiltered,
       upcomingEventsCheck,
+      currentPresenterId,
     } = this.state;
     const pageSize = pagedEvents.pageable.pageSize;
 
@@ -216,7 +239,7 @@ class MyEvents extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/sorted-filtered-myevents/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-presenter-events/${currentPresenterId}/${page}/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -234,6 +257,7 @@ class MyEvents extends Component {
       eventTypesFiltered,
       statusFiltered,
       upcomingEventsCheck,
+      currentPresenterId,
     } = this.state;
 
     let eveTypesQuery = this.eventTypesQueryURL(eventTypesFiltered);
@@ -245,7 +269,7 @@ class MyEvents extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/sorted-filtered-myevents/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-presenter-events/${currentPresenterId}/0/${size}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -264,6 +288,7 @@ class MyEvents extends Component {
       eventTypesFiltered,
       statusFiltered,
       upcomingEventsCheck,
+      currentPresenterId,
     } = this.state;
     let { sortOrder } = this.state;
 
@@ -288,7 +313,7 @@ class MyEvents extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/sorted-filtered-myevents/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-presenter-events/${currentPresenterId}/0/${pageSize}/${fieldName}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -314,6 +339,7 @@ class MyEvents extends Component {
       toDate,
       statusFiltered,
       upcomingEventsCheck,
+      currentPresenterId,
     } = this.state;
 
     const pageSize = pagedEvents.pageable.pageSize;
@@ -327,7 +353,7 @@ class MyEvents extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          `/api/sorted-filtered-myevents/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
+          `/api/sorted-filtered-presenter-events/${currentPresenterId}/0/${pageSize}/${sortedField}/${sortOrder}/${fromDate}/${toDate}/${upcomingEventsCheck}?${eveTypesQuery}&${eveStatusQuery}`,
         {
           credentials: "include",
         }
@@ -373,28 +399,35 @@ class MyEvents extends Component {
   }
 
   filterEventTypes = (eveType) => (e) => {
+    console.log("Event type: " + eveType);
     let { eventTypesFiltered } = this.state;
     if (e.target.checked === true) {
+      console.log("Pushed event...");
       eventTypesFiltered.push(eveType);
+      console.log(eventTypesFiltered);
     } else {
+      console.log("filtered event");
       eventTypesFiltered = eventTypesFiltered.filter((x) => x !== eveType);
+      console.log(eventTypesFiltered);
     }
     this.setState({ eventTypesFiltered });
   };
 
   filterStatus = (status) => (e) => {
+    console.log("Filter status called..." + e.target.checked);
     let { statusFiltered } = this.state;
     if (e.target.checked === true) {
       statusFiltered.push(status);
     } else {
       statusFiltered = statusFiltered.filter((x) => x !== status);
     }
+    console.log(statusFiltered);
     this.setState({ statusFiltered });
   };
 
-  async exportMyAllEvents() {
+  async exportMOCAllEvents() {
 
-    let { allEventsExportTrigger } = this.state;
+    let { allEventsExportTrigger, currentPresenterId } = this.state;
     const ExcelFile = ReactExport.ExcelFile;
     const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
     const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
@@ -407,7 +440,7 @@ class MyEvents extends Component {
           localConfig.SERVICE.URL +
           ":" +
           localConfig.SERVICE.PORT +
-          "/api/all-my-events-export",
+          `/api/all-moc-events-export/${currentPresenterId}`,
           {
             credentials: "include",
           }
@@ -416,7 +449,7 @@ class MyEvents extends Component {
           
           const excelExport =  
           (
-      <ExcelFile filename="All-My-Events" hideElement={true} >
+      <ExcelFile filename="All-MOC-Events" hideElement={true} >
           <ExcelSheet data={exportedEvents} name="All-My-Events-export">
               <ExcelColumn label="Event Name" value="eventName"/>
               <ExcelColumn label="Event Type" value="eventTypeDesc"/>
@@ -462,7 +495,32 @@ class MyEvents extends Component {
       dropdownOpen,
       upcomingEventsCheck,
       allExportedEvents,
+      activePresenters,
+      reportCalled,
     } = this.state;
+
+      //Toast for selecting the presenter to fetch report.
+      let presentersListSpace = null;
+      if (activePresenters !== null) {
+        presentersListSpace = activePresenters.map((presenter) => {
+          return (
+            <tr key={presenter.presenterId} id={presenter.presenterId}>
+                <td style={{ whiteSpace: "nowrap" }}>
+                <a href="#" onClick={() => {this.getPresenterDefaultEventsView(presenter.presenterId)}}>
+                    {presenter.name} &nbsp;
+                    {presenter.lastName}
+                </a>
+                </td>
+            </tr>
+          );
+        });
+      } else {
+        presentersListSpace = (
+          <div className="mono-font">
+            Error occurred in retrieving Presenters.
+          </div>
+        );
+      }
 
     const ExcelFile = ReactExport.ExcelFile;
     const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
@@ -482,10 +540,11 @@ class MyEvents extends Component {
 
     let eventTypesCheckBoxes = null;
 
-    if (eventTypes !== null) {
+    if (reportCalled && eventTypes.length > 0) {
       eventTypesCheckBoxes = eventTypes.map((type) => {
         return (
           <CustomInput
+            name={type.eventTypeDesc}
             key={type.eventTypeId}
             // checked={type.eventTypeDesc}
             type="checkbox"
@@ -504,7 +563,7 @@ class MyEvents extends Component {
     }
 
     let statusCheckBoxes = null;
-    if (eventStatuses.length > 0) {
+    if (reportCalled && eventStatuses.length > 0) {
       statusCheckBoxes = eventStatuses.map((status) => {
         return (
           <CustomInput
@@ -518,7 +577,7 @@ class MyEvents extends Component {
       });
     }
 
-    const pageNumbers = pages.map((number) => {
+    const pageNumbers = reportCalled ? ( pages.map((number) => {
       const activeCheck = currentPage === number - 1 ? "active" : "";
       return (
         <PaginationItem className={activeCheck}>
@@ -527,10 +586,11 @@ class MyEvents extends Component {
           </PaginationLink>
         </PaginationItem>
       );
-    });
+    })
+    ) : "";
 
     const pageSizeArray = [10, 20, 50, 100, 200];
-    const pageSizesDropDown = pageSizeArray.map((size) => {
+    const pageSizesDropDown = reportCalled ? ( pageSizeArray.map((size) => {
       const sizeCheck =
         size === pagedEvents.pageable.pageSize ? "disabled" : "";
       return (
@@ -541,9 +601,10 @@ class MyEvents extends Component {
           {size}
         </DropdownItem>
       );
-    });
+    })
+    ) : "";
 
-    const pagination = (
+    const pagination = reportCalled ? (
       <Pagination aria-label="Navigate pages">
         <PaginationItem className={firstPageHopCheck}>
           <PaginationLink
@@ -579,14 +640,23 @@ class MyEvents extends Component {
           </PaginationLink>  
         </PaginationItem>
       </Pagination>
-    );
+    ):"";
 
-    const pagesDropdown = (
+    const pagesDropdown = reportCalled ? (
       <Dropdown size="sm" isOpen={dropdownOpen} toggle={this.toggle}>
         <DropdownToggle caret>{pagedEvents.pageable.pageSize}</DropdownToggle>
         <DropdownMenu>{pageSizesDropDown}</DropdownMenu>
       </Dropdown>
-    );
+    ):"";
+
+    const paginationBlock = reportCalled ? (
+        <div>
+        {pagination}
+        <div className="row pageSize-dropDown mono-font">
+          Items per page <span className="fieldSpace">{pagesDropdown}</span>
+        </div>
+        </div>
+    ): "";
 
     //Sort Order arrows
     let sdArrow = null;
@@ -594,7 +664,7 @@ class MyEvents extends Component {
     let locArrow = null;
     let citArrow = null;
     let eveArrow = null;
-    if (sortOrder !== null) {
+    if (reportCalled && sortOrder !== null) {
       if (sortOrder === "asce") {
         if (sortedField === "event.startDateTime") {
           sdArrow = <ArrowUpwardIcon />;
@@ -607,7 +677,7 @@ class MyEvents extends Component {
         } else if (sortedField === "event.endDateTime") {
           edArrow = <ArrowUpwardIcon />;
         }
-      } else if (sortOrder === "desc") {
+      } else if (reportCalled && sortOrder === "desc") {
         if (sortedField === "event.startDateTime") {
           sdArrow = <ArrowDownwardIcon />;
         } else if (sortedField === "event.location") {
@@ -624,15 +694,15 @@ class MyEvents extends Component {
       sdArrow = <ArrowDownwardIcon />;
     }
 
-    const dateRangePicker = (
+    const dateRangePicker = reportCalled ? (
       <DateRangePicker
         placeholder={"Select date range..."}
         value={dateRange}
         onChange={this.setDateRange}
       />
-    );
+    ) : "";
 
-    const upcomingEventsCheckbox = (
+    const upcomingEventsCheckbox = reportCalled ? (
       <CustomInput
       key={"upcomingEventsCheck"}
       bsSize="lg"
@@ -642,9 +712,9 @@ class MyEvents extends Component {
       label={"Show only my upcoming events"}
       onChange={this.handleUpcomingEventsCheckbox}
     />
-    );
+    ) : "";
 
-    const filterAccordion = (
+    const filterAccordion = reportCalled ? (
       <Accordion>
         <AccordionSummary
           expandIcon={<FilterListIcon />}
@@ -675,9 +745,9 @@ class MyEvents extends Component {
           </div>
         </AccordionDetails>
       </Accordion>
-    );
+    ) : "";
 
-    const eventList = pagedEvents.content.map((event) => {
+    const eventList = reportCalled ? ( pagedEvents.content.map((event) => {
         let sd = new Date(event.startDateTime);
         let ld = new Date(event.endDateTime);
       return (
@@ -726,120 +796,138 @@ class MyEvents extends Component {
           </td>
         </tr>
       );
-    });
+    })
+    ) : "";
+
     let noUpcomingEvents = null;
-    if (pagedEvents.content.length < 1){
+    if (reportCalled && pagedEvents.content.length < 1){
       noUpcomingEvents = <p>There are no upcoming events.</p>  
   }
-    
+
+   const eventTable = reportCalled ? (
+    <Table className="mt-4" responsive bordered hover>
+    <thead>
+      <tr>
+        <th
+          className="link"
+          width="15%"
+          onClick={() => this.getSortedField("event.location")}
+        >
+          Location {locArrow}
+        </th>
+        <th
+          className="link"
+          width="15%"
+          onClick={() => this.getSortedField("event.eventName")}
+        >
+          Event Name {eveArrow}
+        </th>
+        <th width="18%">Event Status</th>
+        <th width="15%">Presenter(s)</th>
+        <th
+          className="link"
+          width="5%"
+          onClick={() => this.getSortedField("event.city")}
+        >
+          City {citArrow}
+        </th>
+        <th
+          className="link"
+          width="20%"
+          onClick={() => this.getSortedField("event.startDateTime")}
+        >
+          Start Time {sdArrow}
+        </th>
+
+        <th
+          className="link"
+          width="20%"
+          onClick={() => this.getSortedField("event.endDateTime")}
+        >
+          End Time {edArrow}
+        </th>
+        <th width="10%">Type</th>
+        <th width="5%">Action</th>
+      </tr>
+    </thead>
+    <tbody>{eventList}</tbody>
+  </Table>
+   ): "";
+
+   const exportAccordion = reportCalled ? (
+    <div className="exportManagerReportsButton">
+     <Accordion>
+      <AccordionSummary
+        expandIcon={<CloudDownloadIcon style={{ color: "#4287f5" }} />}
+        aria-controls="panel1a-content"
+        id="panel1a-header"
+      >
+      <Typography className="petiteCaps">Export</Typography>
+      </AccordionSummary>
+    <AccordionDetails>
+      <div style={{"margin-left": "-1rem"}}>
+        <ExcelFile filename="Manager-Report-export" element={<Button color="white" ><DownloadIcon fontSize="small" /><span className="petiteCaps">Current view</span></Button>}>
+            <ExcelSheet data={pagedEvents.content} name="My-Outreach-export">
+                <ExcelColumn label="Event Name" value="eventName"/>
+                <ExcelColumn label="Event Type" value="eventTypeDesc"/>
+                <ExcelColumn label="Last Status" value="lastStatus"/>
+                <ExcelColumn label="Location" value="location"/>
+                <ExcelColumn label="Organization" value={(col) => Object.entries(col.orgNames).flat().filter( item => typeof(item) === "object").flat().filter((element, index) => index % 2 === 0).join(", ") }/>
+                <ExcelColumn label="Event Presenters" value={(col) => col.eventPresenters.join(", ") } />
+                <ExcelColumn label="Address" value="address"/>
+                <ExcelColumn label="City" value="city"/>
+                <ExcelColumn label="State" value="state"/>
+                <ExcelColumn label="Zip" value="zip"/>
+                <ExcelColumn label="Start Time" value="startDateTime"/>
+                <ExcelColumn label="End Time" value="endDateTime"/>
+                <ExcelColumn label="Audience Type" value={(col) => col.eventaudienceType.join(", ") }/>
+                <ExcelColumn label="RTA Staff Count" value="rtaStaffCount"/>
+                <ExcelColumn label="Audience Count" value="audienceCount"/>
+                <ExcelColumn label="Survey Complete" value={(col) => col.surveyComplete === 0 ? "False" : "True"}/>
+            </ExcelSheet>
+          </ExcelFile>
+        </div>
+        <div className="row">
+        <Button color="white" onClick={() => this.exportMOCAllEvents()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">MOC's all events</span></Button>
+        <div>{allExportedEvents}</div>
+        </div>
+     </AccordionDetails>
+     </Accordion>
+    </div>
+   ) : "";
+
+     
     return (
       <div>
         <AppNavbar />
         <Container>
-          <div className="headLineSpace float-right">
-            <Button color="success" tag={Link} to="/events/new">
-              Create Event
-            </Button>
-          </div>
-          <div className="exportButton">
-            <Accordion>
+        <h4 className="headLineSpace">Manager Reports</h4>  
+          <div className="headLineSpace">
+          <Accordion>
               <AccordionSummary
-                expandIcon={<CloudDownloadIcon style={{ color: "#4287f5" }} />}
+                expandIcon={<AssessmentIcon />}
                 aria-controls="panel1a-content"
                 id="panel1a-header"
               >
-              <Typography className="petiteCaps">Export</Typography>
+                <Typography>Click to select MOC... </Typography>
               </AccordionSummary>
-            <AccordionDetails>
-              <div style={{"margin-left": "-1rem"}}>
-                <ExcelFile filename="My-Outreach-export" element={<Button color="white" ><DownloadIcon fontSize="small" /><span className="petiteCaps">Current view</span></Button>}>
-                    <ExcelSheet data={pagedEvents.content} name="My-Outreach-export">
-                        <ExcelColumn label="Event Name" value="eventName"/>
-                        <ExcelColumn label="Event Type" value="eventTypeDesc"/>
-                        <ExcelColumn label="Last Status" value="lastStatus"/>
-                        <ExcelColumn label="Location" value="location"/>
-                        <ExcelColumn label="Organization" value={(col) => Object.entries(col.orgNames).flat().filter( item => typeof(item) === "object").flat().filter((element, index) => index % 2 === 0).join(", ") }/>
-                        <ExcelColumn label="Event Presenters" value={(col) => col.eventPresenters.join(", ") } />
-                        <ExcelColumn label="Address" value="address"/>
-                        <ExcelColumn label="City" value="city"/>
-                        <ExcelColumn label="State" value="state"/>
-                        <ExcelColumn label="Zip" value="zip"/>
-                        <ExcelColumn label="Start Time" value="startDateTime"/>
-                        <ExcelColumn label="End Time" value="endDateTime"/>
-                        <ExcelColumn label="Audience Type" value={(col) => col.eventaudienceType.join(", ") }/>
-                        <ExcelColumn label="RTA Staff Count" value="rtaStaffCount"/>
-                        <ExcelColumn label="Audience Count" value="audienceCount"/>
-                        <ExcelColumn label="Survey Complete" value={(col) => col.surveyComplete === 0 ? "False" : "True"}/>
-                    </ExcelSheet>
-                  </ExcelFile>
-                </div>
-                <div className="row">
-                <Button color="white" onClick={() => this.exportMyAllEvents()} ><DownloadIcon fontSize="small" /><span className="petiteCaps">All events</span></Button>
-                <div>{allExportedEvents}</div>
-                </div>
-            </AccordionDetails>
-            </Accordion>
+              <AccordionDetails>
+                <div className="paraSpace">{presentersListSpace}</div>
+              </AccordionDetails>
+            </Accordion> 
           </div>
+       
         </Container>
         <Container>
-          <h4 className="headLineSpace">My Outreach Schedule</h4>
-          <div className="float-left">{filterAccordion}</div>
-          <Table className="mt-4" responsive bordered hover>
-            <thead>
-              <tr>
-                <th
-                  className="link"
-                  width="15%"
-                  onClick={() => this.getSortedField("event.location")}
-                >
-                  Location {locArrow}
-                </th>
-                <th
-                  className="link"
-                  width="15%"
-                  onClick={() => this.getSortedField("event.eventName")}
-                >
-                  Event Name {eveArrow}
-                </th>
-                <th width="18%">Event Status</th>
-                <th width="15%">Presenter(s)</th>
-                <th
-                  className="link"
-                  width="5%"
-                  onClick={() => this.getSortedField("event.city")}
-                >
-                  City {citArrow}
-                </th>
-                <th
-                  className="link"
-                  width="20%"
-                  onClick={() => this.getSortedField("event.startDateTime")}
-                >
-                  Start Time {sdArrow}
-                </th>
-
-                <th
-                  className="link"
-                  width="20%"
-                  onClick={() => this.getSortedField("event.endDateTime")}
-                >
-                  End Time {edArrow}
-                </th>
-                <th width="10%">Type</th>
-                <th width="5%">Action</th>
-              </tr>
-            </thead>
-            <tbody>{eventList}</tbody>
-          </Table>
+        <div className="float-left">{filterAccordion}</div>
+        {exportAccordion}
+        </Container>
+        <Container>
+           {eventTable}
           <div>{noUpcomingEvents}</div>
         </Container>
         <Container>
-          <div>
-            {pagination}
-            <div className="row pageSize-dropDown mono-font">
-              Items per page <span className="fieldSpace">{pagesDropdown}</span>
-            </div>
-          </div>
+            {paginationBlock}
         </Container>
         <p>&nbsp;</p>
 
@@ -848,4 +936,4 @@ class MyEvents extends Component {
   }
 }
 
-export default withCookies(MyEvents);
+export default withCookies(ManagerReports);

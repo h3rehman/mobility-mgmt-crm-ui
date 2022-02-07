@@ -269,6 +269,11 @@ a.customLink:hover {
   margin-right: -7.5rem;
   margin-top: 4.5rem;
 }
+
+.exportManagerReportsButton {
+  float: right;
+}
+
 /*Alert*/
 .warning-color {
   background-color: rgb(255, 244, 229) !important;
