@@ -112,7 +112,7 @@ class Home extends Component {
               </Button>
             </p>
             <p>
-            <span style={{"float": "right"}} className="petite-font">Version 2.0</span>
+            <span style={{"float": "right"}} className="petite-font">Version {localConfig.version}</span>
             </p>
 
           </Jumbotron>
@@ -136,7 +136,7 @@ class Home extends Component {
           </Button>
           <br></br>
           <br></br>
-          <span className="petite-font">Version 2.0</span>
+          <span className="petite-font">Version {localConfig.version}</span>
         </div>
       </div>
     );
